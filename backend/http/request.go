@@ -2,6 +2,8 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 
@@ -43,7 +45,6 @@ func listPodsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Loga o erro no servidor
 		log.Printf("ERRO: Falha ao listar pods no namespace '%s': %v", namespace, err)
-		// Envia uma resposta de erro genérica para o cliente
 		http.Error(w, "Erro ao buscar dados do Kubernetes", http.StatusInternalServerError)
 		return
 	}
@@ -65,9 +66,61 @@ func listPodsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 
+type PodCreationRequest struct {
+	Name      string `json:"podName"`
+	Namespace string `json:"namespace"`
+	Image     string `json:"image"`
+}
+
+func createPodHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// 2. Declare uma variável do tipo da sua struct para ser o destino dos dados.
+	var podReq PodCreationRequest
+
+	// 3. Crie um decoder que lê diretamente do corpo da requisição.
+	//    Isso é mais eficiente do que ler o corpo inteiro para a memória primeiro.
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&podReq) // O '&' é crucial, passamos um ponteiro!
+
+	// 4. TRATAMENTO DE ERROS DETALHADO (MUITO IMPORTANTE!)
+	if err != nil {
+		// Se o corpo estiver vazio, o decoder retorna um erro EOF (End of File).
+		if err == io.EOF {
+			http.Error(w, "Corpo da requisição não pode ser vazio", http.StatusBadRequest)
+			return
+		}
+		// Se o JSON estiver mal formatado, retorna um erro de sintaxe.
+		// Damos uma resposta genérica para não expor detalhes internos.
+		log.Printf("ERRO ao decodificar JSON: %v", err)
+		http.Error(w, "JSON mal formatado", http.StatusBadRequest)
+		return
+	}
+
+	// 5. [Opcional mas recomendado] Valide os dados recebidos.
+	if podReq.Name == "" || podReq.Namespace == "" || podReq.Image == "" {
+		http.Error(w, "Campos 'podName', 'namespace', e 'image' são obrigatórios", http.StatusBadRequest)
+		return
+	}
+
+	k8s.CreatePod(podReq.Namespace, podReq.Image, podReq.Name)
+
+	// 7. Envie uma resposta de sucesso para o cliente.
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated) // Status 201 Created é apropriado aqui.
+
+	// Você pode retornar uma mensagem de sucesso simples
+	response := map[string]string{"status": "sucesso", "message": fmt.Sprintf("Pod '%s' está sendo criado.", podReq.Name)}
+	json.NewEncoder(w).Encode(response)
+}
+
 func Listen() {
 	// Aplica o middleware CORS ao handler
 	http.HandleFunc("GET /listAllPods/{namespace}", corsMiddleware(listPodsHandler))
+	http.HandleFunc("POST /createPod", corsMiddleware(createPodHandler))
 
 	// Adiciona handler para requisições OPTIONS (preflight)
 	http.HandleFunc("OPTIONS /listAllPods/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
