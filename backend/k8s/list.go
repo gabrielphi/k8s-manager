@@ -13,6 +13,7 @@ type PodInfo struct {
 	Status    string `json:"status"`
 	IP        string `json:"ip"`
 	Node      string `json:"node"`
+	Image     string `json:"image"`
 }
 
 // ListarPods agora retorna um slice de PodInfo e um erro.
@@ -34,6 +35,7 @@ func ListPods(namespace string) ([]PodInfo, error) {
 			Status:    string(pod.Status.Phase), // pod.Status.Phase é do tipo v1.PodPhase
 			IP:        pod.Status.PodIP,
 			Node:      pod.Spec.NodeName,
+			Image:     pod.Spec.Containers[0].Image,
 		}
 		podsInfo = append(podsInfo, info)
 	}

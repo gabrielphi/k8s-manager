@@ -13,6 +13,7 @@ func CreatePod(namespace string, image string, name string) {
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "go-api-",
 			Namespace:    namespace,
+			Name:         name,
 		},
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{

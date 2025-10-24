@@ -95,6 +95,10 @@
                   <span class="info-label">Status:</span>
                   <span class="info-value">{{ pod.status }}</span>
                 </div>
+                <div class="info-item">
+                  <span class="info-label">Imagem:</span>
+                  <span class="info-value">{{ pod.image }}</span>
+                </div>
               </div>
             </div>
             
