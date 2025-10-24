@@ -266,7 +266,11 @@ export default {
           
           // Em produção, aqui seria:
           // await Promise.all(this.selectedResources.map(resource => 
-          //   fetch(`/api/resources/${resource.id}`, { method: 'DELETE' })
+          //   fetch('/api/deletePod', { 
+          //     method: 'POST',
+          //     headers: { 'Content-Type': 'application/json' },
+          //     body: JSON.stringify({ podName: resource.name, namespace: resource.namespace })
+          //   })
           // ));
           
           // Remover recursos da lista
@@ -283,7 +287,11 @@ export default {
           await new Promise(resolve => setTimeout(resolve, 1000));
           
           // Em produção, aqui seria:
-          // await fetch(`/api/resources/${this.singleResource.id}`, { method: 'DELETE' });
+          // await fetch('/api/deletePod', { 
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/json' },
+          //   body: JSON.stringify({ podName: this.singleResource.name, namespace: this.singleResource.namespace })
+          // });
           
           // Remover recurso da lista
           this.resources = this.resources.filter(r => r.id !== this.singleResource.id);
