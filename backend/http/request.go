@@ -212,7 +212,7 @@ func deletePodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Deletando pod: %s no namespace: %s ", podReq.Name, podReq.Namespace
+	log.Printf("Deletando pod: %s no namespace: %s ", podReq.Name, podReq.Namespace)
 
 	// Chama a função de criação do pod
 	err = k8s.DeletePod(podReq.Name, podReq.Namespace)
