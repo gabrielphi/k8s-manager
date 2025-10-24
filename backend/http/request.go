@@ -8,6 +8,25 @@ import (
 	"backend/k8s" // Verifique se o nome do pacote está correto
 )
 
+// CORS middleware para permitir requisições do frontend
+func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Headers CORS necessários
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Se for uma requisição OPTIONS (preflight), retorna imediatamente
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Chama o handler original
+		next(w, r)
+	}
+}
+
 // listPodsHandler agora lê o namespace da URL
 func listPodsHandler(w http.ResponseWriter, r *http.Request) {
 	// 1. Extrai o valor do placeholder "{namespace}" da URL
@@ -47,6 +66,14 @@ func listPodsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Listen() {
-	http.HandleFunc("GET /listAllPods/{namespace}", listPodsHandler)
+	// Aplica o middleware CORS ao handler
+	http.HandleFunc("GET /listAllPods/{namespace}", corsMiddleware(listPodsHandler))
+
+	// Adiciona handler para requisições OPTIONS (preflight)
+	http.HandleFunc("OPTIONS /listAllPods/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		// O middleware já trata as requisições OPTIONS
+	}))
+
+	log.Println("Servidor iniciado na porta 7000 com CORS habilitado")
 	log.Fatal(http.ListenAndServe(":7000", nil))
 }
