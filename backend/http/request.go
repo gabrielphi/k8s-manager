@@ -13,13 +13,19 @@ import (
 // CORS middleware para permitir requisições do frontend
 func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Log da requisição para debug
+		log.Printf("Requisição recebida: %s %s", r.Method, r.URL.Path)
+
 		// Headers CORS necessários
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Max-Age", "86400")
 
 		// Se for uma requisição OPTIONS (preflight), retorna imediatamente
 		if r.Method == "OPTIONS" {
+			log.Printf("Requisição OPTIONS (preflight) recebida para %s", r.URL.Path)
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -73,7 +79,10 @@ type PodCreationRequest struct {
 }
 
 func createPodHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("createPodHandler chamado com método: %s", r.Method)
+
 	if r.Method != http.MethodPost {
+		log.Printf("Método não permitido: %s (esperado: POST)", r.Method)
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
 		return
 	}
@@ -90,6 +99,7 @@ func createPodHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Se o corpo estiver vazio, o decoder retorna um erro EOF (End of File).
 		if err == io.EOF {
+			log.Printf("ERRO: Corpo da requisição vazio")
 			http.Error(w, "Corpo da requisição não pode ser vazio", http.StatusBadRequest)
 			return
 		}
@@ -100,13 +110,24 @@ func createPodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("Dados recebidos: Name=%s, Namespace=%s, Image=%s", podReq.Name, podReq.Namespace, podReq.Image)
+
 	// 5. [Opcional mas recomendado] Valide os dados recebidos.
 	if podReq.Name == "" || podReq.Namespace == "" || podReq.Image == "" {
+		log.Printf("ERRO: Campos obrigatórios vazios - Name: %s, Namespace: %s, Image: %s", podReq.Name, podReq.Namespace, podReq.Image)
 		http.Error(w, "Campos 'podName', 'namespace', e 'image' são obrigatórios", http.StatusBadRequest)
 		return
 	}
 
-	k8s.CreatePod(podReq.Namespace, podReq.Image, podReq.Name)
+	log.Printf("Criando pod: %s no namespace: %s com imagem: %s", podReq.Name, podReq.Namespace, podReq.Image)
+
+	// Chama a função de criação do pod
+	err = k8s.CreatePod(podReq.Namespace, podReq.Image, podReq.Name)
+	if err != nil {
+		log.Printf("ERRO ao criar pod: %v", err)
+		http.Error(w, fmt.Sprintf("Erro ao criar pod: %v", err), http.StatusInternalServerError)
+		return
+	}
 
 	// 7. Envie uma resposta de sucesso para o cliente.
 	w.Header().Set("Content-Type", "application/json")
@@ -115,6 +136,8 @@ func createPodHandler(w http.ResponseWriter, r *http.Request) {
 	// Você pode retornar uma mensagem de sucesso simples
 	response := map[string]string{"status": "sucesso", "message": fmt.Sprintf("Pod '%s' está sendo criado.", podReq.Name)}
 	json.NewEncoder(w).Encode(response)
+
+	log.Printf("Pod criado com sucesso: %s", podReq.Name)
 }
 
 func Listen() {
@@ -122,8 +145,11 @@ func Listen() {
 	http.HandleFunc("GET /listAllPods/{namespace}", corsMiddleware(listPodsHandler))
 	http.HandleFunc("POST /createPod", corsMiddleware(createPodHandler))
 
-	// Adiciona handler para requisições OPTIONS (preflight)
+	// Adiciona handler para requisições OPTIONS (preflight) para ambas as rotas
 	http.HandleFunc("OPTIONS /listAllPods/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		// O middleware já trata as requisições OPTIONS
+	}))
+	http.HandleFunc("OPTIONS /createPod", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		// O middleware já trata as requisições OPTIONS
 	}))
 

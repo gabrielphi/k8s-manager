@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func CreatePod(namespace string, image string, name string) {
+func CreatePod(namespace string, image string, name string) error {
 	// create a pod defintion
 	podDefintion := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -27,7 +27,8 @@ func CreatePod(namespace string, image string, name string) {
 	// create a new pod
 	_, err := client.CoreV1().Pods(namespace).Create(context.Background(), podDefintion, metav1.CreateOptions{})
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 
+	return nil
 }
