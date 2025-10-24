@@ -7,49 +7,120 @@
 
     <div class="content-card">
       <div class="card-header">
-        <h2>Recursos Disponíveis</h2>
-        <button class="btn btn-primary" @click="refreshData">
-          <span class="btn-icon">🔄</span>
-          Atualizar
+        <h2>Consultar Pods por Namespace</h2>
+        <div class="search-container">
+          <div class="input-group">
+            <input 
+              type="text" 
+              v-model="namespaceInput" 
+              placeholder="Digite o namespace (ex: default, kube-system)"
+              class="namespace-input"
+              @keyup.enter="searchPods"
+            />
+            <button class="btn btn-primary" @click="searchPods" :disabled="!namespaceInput.trim()">
+              <span class="btn-icon">🔍</span>
+              Buscar
+            </button>
+          </div>
+          <button class="btn btn-secondary" @click="refreshData">
+            <span class="btn-icon">🔄</span>
+            Atualizar
+          </button>
+        </div>
+      </div>
+
+      <div class="error-state" v-if="error">
+        <div class="error-icon">⚠️</div>
+        <h3>Erro na consulta</h3>
+        <p>{{ error }}</p>
+        <button class="btn btn-primary" @click="searchPods" v-if="currentNamespace">
+          Tentar novamente
         </button>
       </div>
 
       <div class="loading-state" v-if="loading">
         <div class="spinner"></div>
-        <p>Carregando recursos...</p>
+        <p>Carregando pods do namespace "{{ currentNamespace }}"...</p>
       </div>
 
-      <div class="empty-state" v-else-if="!resources.length">
+      <div class="empty-state" v-else-if="!pods.length && !loading">
         <div class="empty-icon">📋</div>
-        <h3>Nenhum recurso encontrado</h3>
-        <p>Não há recursos para exibir no momento.</p>
-        <button class="btn btn-primary" @click="refreshData">
+        <h3>Nenhum pod encontrado</h3>
+        <p v-if="currentNamespace">Nenhum pod encontrado no namespace "{{ currentNamespace }}".</p>
+        <p v-else>Digite um namespace para buscar pods.</p>
+        <button class="btn btn-primary" @click="refreshData" v-if="currentNamespace">
           Tentar novamente
         </button>
       </div>
 
-      <div class="resources-grid" v-else>
-        <div 
-          class="resource-card" 
-          v-for="resource in resources" 
-          :key="resource.id"
-        >
-          <div class="resource-header">
-            <h3>{{ resource.name }}</h3>
-            <span class="resource-type">{{ resource.type }}</span>
-          </div>
-          <div class="resource-content">
-            <p><strong>Namespace:</strong> {{ resource.namespace }}</p>
-            <p><strong>Status:</strong> 
-              <span class="status" :class="resource.status.toLowerCase()">
-                {{ resource.status }}
-              </span>
-            </p>
-            <p><strong>Criado em:</strong> {{ formatDate(resource.createdAt) }}</p>
-          </div>
-          <div class="resource-actions">
-            <button class="btn btn-sm btn-outline">Ver detalhes</button>
-            <button class="btn btn-sm btn-danger">Deletar</button>
+      <div class="pods-container" v-else-if="pods.length">
+        <div class="pods-header">
+          <h3>Pods no namespace: <span class="namespace-badge">{{ currentNamespace }}</span></h3>
+          <span class="pods-count">{{ pods.length }} pod(s) encontrado(s)</span>
+        </div>
+        
+        <div class="pods-grid">
+          <div 
+            class="pod-card" 
+            v-for="pod in pods" 
+            :key="pod.metadata.uid"
+          >
+            <div class="pod-header">
+              <div class="pod-name">
+                <h4>{{ pod.metadata.name }}</h4>
+                <span class="pod-namespace">{{ pod.metadata.namespace }}</span>
+              </div>
+              <div class="pod-status">
+                <span class="status-badge" :class="getStatusClass(pod.status.phase)">
+                  {{ pod.status.phase }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="pod-content">
+              <div class="pod-info">
+                <div class="info-item">
+                  <span class="info-label">UID:</span>
+                  <span class="info-value">{{ pod.metadata.uid }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Criado em:</span>
+                  <span class="info-value">{{ formatDate(pod.metadata.creationTimestamp) }}</span>
+                </div>
+                <div class="info-item" v-if="pod.spec.nodeName">
+                  <span class="info-label">Node:</span>
+                  <span class="info-value">{{ pod.spec.nodeName }}</span>
+                </div>
+                <div class="info-item" v-if="pod.status.containerStatuses">
+                  <span class="info-label">Containers:</span>
+                  <span class="info-value">{{ pod.status.containerStatuses.length }}</span>
+                </div>
+              </div>
+              
+              <div class="pod-labels" v-if="pod.metadata.labels">
+                <div class="labels-title">Labels:</div>
+                <div class="labels-container">
+                  <span 
+                    class="label-tag" 
+                    v-for="(value, key) in pod.metadata.labels" 
+                    :key="key"
+                  >
+                    {{ key }}: {{ value }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="pod-actions">
+              <button class="btn btn-sm btn-outline" @click="viewPodDetails(pod)">
+                <span class="btn-icon">👁️</span>
+                Detalhes
+              </button>
+              <button class="btn btn-sm btn-danger" @click="deletePod(pod)">
+                <span class="btn-icon">🗑️</span>
+                Deletar
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -63,65 +134,99 @@ export default {
   data() {
     return {
       loading: false,
-      resources: [
-        {
-          id: 1,
-          name: 'nginx-deployment',
-          type: 'Deployment',
-          namespace: 'default',
-          status: 'Running',
-          createdAt: new Date('2024-01-15')
-        },
-        {
-          id: 2,
-          name: 'mysql-service',
-          type: 'Service',
-          namespace: 'default',
-          status: 'Active',
-          createdAt: new Date('2024-01-14')
-        },
-        {
-          id: 3,
-          name: 'redis-configmap',
-          type: 'ConfigMap',
-          namespace: 'default',
-          status: 'Ready',
-          createdAt: new Date('2024-01-13')
-        }
-      ]
+      namespaceInput: '',
+      currentNamespace: '',
+      pods: [],
+      error: null
     }
   },
   methods: {
-    async refreshData() {
+    async searchPods() {
+      if (!this.namespaceInput.trim()) {
+        this.error = 'Por favor, digite um namespace válido';
+        return;
+      }
+
       this.loading = true;
-      
-      // Simular chamada para o backend
+      this.error = null;
+      this.currentNamespace = this.namespaceInput.trim();
+
       try {
-        // TODO: Inserir backend - chamada para API
-        console.log('Chamando backend para listar recursos...');
+        const response = await fetch(`http://localhost:7000/listAllPods/${this.currentNamespace}`);
         
-        // Simular delay da API
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (!response.ok) {
+          throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
         
-        // Em produção, aqui seria:
-        // const response = await fetch('/api/resources');
-        // this.resources = await response.json();
-        
+        // Processar a resposta JSON do Kubernetes
+        if (data.items && Array.isArray(data.items)) {
+          this.pods = data.items;
+        } else if (Array.isArray(data)) {
+          this.pods = data;
+        } else {
+          this.pods = [];
+        }
+
+        if (this.pods.length === 0) {
+          this.error = `Nenhum pod encontrado no namespace "${this.currentNamespace}"`;
+        }
+
       } catch (error) {
-        console.error('Erro ao carregar recursos:', error);
-        // TODO: Inserir backend - tratamento de erro
+        console.error('Erro ao buscar pods:', error);
+        this.error = `Erro ao buscar pods: ${error.message}`;
+        this.pods = [];
       } finally {
         this.loading = false;
       }
     },
-    
-    formatDate(date) {
-      return new Intl.DateTimeFormat('pt-BR').format(date);
+
+    async refreshData() {
+      if (this.currentNamespace) {
+        await this.searchPods();
+      } else {
+        this.pods = [];
+        this.currentNamespace = '';
+      }
+    },
+
+    getStatusClass(status) {
+      const statusMap = {
+        'Running': 'running',
+        'Pending': 'pending',
+        'Succeeded': 'succeeded',
+        'Failed': 'failed',
+        'Unknown': 'unknown'
+      };
+      return statusMap[status] || 'unknown';
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('pt-BR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    },
+
+    viewPodDetails(pod) {
+      // Implementar visualização de detalhes do pod
+      console.log('Visualizar detalhes do pod:', pod);
+      alert(`Detalhes do pod: ${pod.metadata.name}\nNamespace: ${pod.metadata.namespace}\nStatus: ${pod.status.phase}`);
+    },
+
+    deletePod(pod) {
+      // Implementar deleção do pod
+      if (confirm(`Tem certeza que deseja deletar o pod "${pod.metadata.name}"?`)) {
+        console.log('Deletar pod:', pod);
+        alert('Funcionalidade de deleção será implementada em breve');
+      }
     }
-  },
-  
-  mounted() {
-    this.refreshData();
   }
 }
 </script>
@@ -155,9 +260,6 @@ export default {
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 1.5rem;
   border-bottom: 1px solid #e2e8f0;
   background: #f8fafc;
@@ -165,8 +267,40 @@ export default {
 
 .card-header h2 {
   color: #2d3748;
-  margin: 0;
+  margin: 0 0 1rem 0;
   font-size: 1.5rem;
+}
+
+.search-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.namespace-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.namespace-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.namespace-input::placeholder {
+  color: #a0aec0;
 }
 
 .loading-state {
@@ -208,81 +342,209 @@ export default {
   margin-bottom: 0.5rem;
 }
 
-.resources-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  padding: 1.5rem;
+.error-state {
+  text-align: center;
+  padding: 3rem;
+  color: #e53e3e;
 }
 
-.resource-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.resource-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.resource-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.error-icon {
+  font-size: 4rem;
   margin-bottom: 1rem;
 }
 
-.resource-header h3 {
-  color: #2d3748;
-  margin: 0;
-  font-size: 1.2rem;
+.error-state h3 {
+  color: #e53e3e;
+  margin-bottom: 0.5rem;
 }
 
-.resource-type {
+.pods-container {
+  padding: 1.5rem;
+}
+
+.pods-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.pods-header h3 {
+  color: #2d3748;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.namespace-badge {
   background: #667eea;
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.pods-count {
+  color: #718096;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
-.resource-content p {
-  margin: 0.5rem 0;
-  color: #4a5568;
+.pods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
 }
 
-.status {
+.pod-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.pod-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.pod-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.pod-name h4 {
+  color: #2d3748;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.pod-namespace {
+  color: #718096;
+  font-size: 0.9rem;
+  background: #f7fafc;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  border-radius: 6px;
 }
 
-.status.running,
-.status.active,
-.status.ready {
+.pod-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.running {
   background: #c6f6d5;
   color: #22543d;
 }
 
-.status.pending {
+.status-badge.pending {
   background: #fef5e7;
   color: #744210;
 }
 
-.status.failed {
+.status-badge.succeeded {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.status-badge.failed {
   background: #fed7d7;
   color: #742a2a;
 }
 
-.resource-actions {
+.status-badge.unknown {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.pod-content {
+  margin-bottom: 1.5rem;
+}
+
+.pod-info {
+  margin-bottom: 1rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f7fafc;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #718096;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.info-value {
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 0.9rem;
+  word-break: break-all;
+  text-align: right;
+  max-width: 60%;
+}
+
+.pod-labels {
+  margin-top: 1rem;
+}
+
+.labels-title {
+  color: #718096;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.labels-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.label-tag {
+  background: #e6fffa;
+  color: #234e52;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #b2f5ea;
+}
+
+.pod-actions {
   display: flex;
   gap: 0.5rem;
   margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f7fafc;
 }
 
 .btn {
@@ -304,6 +566,22 @@ export default {
 
 .btn-primary:hover {
   background: #5a67d8;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: #718096;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4a5568;
   transform: translateY(-1px);
 }
 
