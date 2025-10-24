@@ -10,19 +10,29 @@
         <h2>Consultar Pods por Namespace</h2>
         <div class="search-container">
           <div class="input-group">
-            <input 
-              type="text" 
-              v-model="namespaceInput" 
-              placeholder="Digite o namespace (ex: default, kube-system)"
-              class="namespace-input"
-              @keyup.enter="searchPods"
-            />
-            <button class="btn btn-primary" @click="searchPods" :disabled="!namespaceInput.trim()">
+            <select 
+              v-model="selectedNamespace" 
+              class="namespace-select"
+              @change="onNamespaceChange"
+              :disabled="loadingNamespaces"
+            >
+              <option value="">
+                {{ loadingNamespaces ? 'Carregando namespaces...' : 'Selecione um namespace' }}
+              </option>
+              <option 
+                v-for="namespace in namespaces" 
+                :key="namespace" 
+                :value="namespace"
+              >
+                {{ namespace }}
+              </option>
+            </select>
+            <button class="btn btn-primary" @click="searchPods" :disabled="!selectedNamespace || loadingNamespaces">
               <span class="btn-icon">🔍</span>
               Buscar
             </button>
           </div>
-          <button class="btn btn-secondary" @click="refreshData">
+          <button class="btn btn-secondary" @click="refreshData" :disabled="loadingNamespaces">
             <span class="btn-icon">🔄</span>
             Atualizar
           </button>
@@ -125,22 +135,56 @@ export default {
   data() {
     return {
       loading: false,
-      namespaceInput: '',
+      loadingNamespaces: false,
+      selectedNamespace: '',
       currentNamespace: '',
+      namespaces: [],
       pods: [],
       error: null
     }
   },
+  async mounted() {
+    await this.loadNamespaces();
+  },
   methods: {
+    async loadNamespaces() {
+      this.loadingNamespaces = true;
+      this.error = null;
+
+      try {
+        const response = await fetch('http://localhost:7000/listAllNs');
+        
+        if (!response.ok) {
+          throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Namespaces carregados:', data);
+        
+        if (Array.isArray(data)) {
+          this.namespaces = data;
+        } else {
+          this.namespaces = [];
+        }
+
+      } catch (error) {
+        console.error('Erro ao carregar namespaces:', error);
+        this.error = `Erro ao carregar namespaces: ${error.message}`;
+        this.namespaces = [];
+      } finally {
+        this.loadingNamespaces = false;
+      }
+    },
+
     async searchPods() {
-      if (!this.namespaceInput.trim()) {
-        this.error = 'Por favor, digite um namespace válido';
+      if (!this.selectedNamespace) {
+        this.error = 'Por favor, selecione um namespace';
         return;
       }
 
       this.loading = true;
       this.error = null;
-      this.currentNamespace = this.namespaceInput.trim();
+      this.currentNamespace = this.selectedNamespace;
 
       try {
         const response = await fetch(`http://localhost:7000/listAllPods/${this.currentNamespace}`);
@@ -172,8 +216,17 @@ export default {
       }
     },
 
+    onNamespaceChange() {
+      // Limpar pods quando namespace muda
+      this.pods = [];
+      this.currentNamespace = '';
+      this.error = null;
+    },
+
     async refreshData() {
-      if (this.currentNamespace) {
+      // Recarregar namespaces e pods
+      await this.loadNamespaces();
+      if (this.selectedNamespace) {
         await this.searchPods();
       } else {
         this.pods = [];
@@ -274,7 +327,7 @@ export default {
   align-items: center;
 }
 
-.namespace-input {
+.namespace-select {
   flex: 1;
   padding: 0.75rem 1rem;
   border: 2px solid #4a5568;
@@ -283,16 +336,26 @@ export default {
   transition: all 0.3s ease;
   background: #1a202c;
   color: #e2e8f0;
+  cursor: pointer;
 }
 
-.namespace-input:focus {
+.namespace-select:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
-.namespace-input::placeholder {
+.namespace-select:disabled {
+  background: #2d3748;
   color: #718096;
+  cursor: not-allowed;
+  border-color: #4a5568;
+}
+
+.namespace-select option {
+  background: #1a202c;
+  color: #e2e8f0;
+  padding: 0.5rem;
 }
 
 .loading-state {

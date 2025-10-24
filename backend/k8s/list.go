@@ -43,3 +43,14 @@ func ListPods(namespace string) ([]PodInfo, error) {
 	// Retorna o slice preenchido e nenhum erro
 	return podsInfo, nil
 }
+func ListNamespaces() ([]string, error) {
+	namespace, err := client.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("erro ao listar namespaces: %w", err)
+	}
+	var namespaces []string
+	for _, ns := range namespace.Items {
+		namespaces = append(namespaces, ns.Name)
+	}
+	return namespaces, nil
+}

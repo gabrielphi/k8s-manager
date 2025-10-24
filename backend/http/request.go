@@ -71,6 +71,34 @@ func listPodsHandler(w http.ResponseWriter, r *http.Request) {
 	// 6. Envia a resposta
 	w.Write(jsonResponse)
 }
+func listNsHandler(w http.ResponseWriter, r *http.Request) {
+	// 1. Extrai o valor do placeholder "{namespace}" da URL
+
+	// 3. [IMPORTANTE] Trate o erro da sua função! Não ignore com _
+	jsonAllNs, err := k8s.ListNamespaces()
+	if err != nil {
+		// Loga o erro no servidor
+		log.Printf("ERRO: Falha ao listar NS '%s': %v", jsonAllNs, err)
+		http.Error(w, "Erro ao buscar dados do Kubernetes", http.StatusInternalServerError)
+		return
+	}
+
+	// 4. [MELHORIA] Defina o Content-Type para que os clientes saibam que é JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// 5. Converte para JSON
+	jsonResponse, err := json.Marshal(jsonAllNs)
+	if err != nil {
+		// Se a serialização falhar (raro, mas possível), avise o servidor.
+		// Não use log.Fatal(), pois isso derruba o servidor!
+		log.Printf("ERRO: Falha ao serializar JSON: %v", err)
+		http.Error(w, "Erro ao formatar resposta", http.StatusInternalServerError)
+		return
+	}
+
+	// 6. Envia a resposta
+	w.Write(jsonResponse)
+}
 
 type PodCreationRequest struct {
 	Name      string `json:"podName"`
@@ -144,12 +172,16 @@ func Listen() {
 	// Aplica o middleware CORS ao handler
 	http.HandleFunc("GET /listAllPods/{namespace}", corsMiddleware(listPodsHandler))
 	http.HandleFunc("POST /createPod", corsMiddleware(createPodHandler))
+	http.HandleFunc("GET /listAllNs", corsMiddleware(listNsHandler))
 
 	// Adiciona handler para requisições OPTIONS (preflight) para ambas as rotas
 	http.HandleFunc("OPTIONS /listAllPods/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		// O middleware já trata as requisições OPTIONS
 	}))
 	http.HandleFunc("OPTIONS /createPod", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		// O middleware já trata as requisições OPTIONS
+	}))
+	http.HandleFunc("OPTIONS /listAllNs", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		// O middleware já trata as requisições OPTIONS
 	}))
 
