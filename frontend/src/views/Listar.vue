@@ -62,51 +62,38 @@
         <div class="pods-grid">
           <div 
             class="pod-card" 
-            v-for="pod in pods" 
-            :key="pod.metadata.uid"
+            v-for="(pod, index) in pods" 
+            :key="index"
           >
             <div class="pod-header">
               <div class="pod-name">
-                <h4>{{ pod.metadata.name }}</h4>
-                <span class="pod-namespace">{{ pod.metadata.namespace }}</span>
+                <h4>{{ pod.nome }}</h4>
+                <span class="pod-namespace">{{ pod.namespace }}</span>
               </div>
               <div class="pod-status">
-                <span class="status-badge" :class="getStatusClass(pod.status.phase)">
-                  {{ pod.status.phase }}
+                <span class="status-badge" :class="getStatusClass(pod.status)">
+                  {{ pod.status }}
                 </span>
               </div>
             </div>
             
             <div class="pod-content">
               <div class="pod-info">
-                <div class="info-item">
-                  <span class="info-label">UID:</span>
-                  <span class="info-value">{{ pod.metadata.uid }}</span>
+                <div class="info-item" v-if="pod.ip">
+                  <span class="info-label">IP:</span>
+                  <span class="info-value">{{ pod.ip }}</span>
                 </div>
-                <div class="info-item">
-                  <span class="info-label">Criado em:</span>
-                  <span class="info-value">{{ formatDate(pod.metadata.creationTimestamp) }}</span>
-                </div>
-                <div class="info-item" v-if="pod.spec.nodeName">
+                <div class="info-item" v-if="pod.node">
                   <span class="info-label">Node:</span>
-                  <span class="info-value">{{ pod.spec.nodeName }}</span>
+                  <span class="info-value">{{ pod.node }}</span>
                 </div>
-                <div class="info-item" v-if="pod.status.containerStatuses">
-                  <span class="info-label">Containers:</span>
-                  <span class="info-value">{{ pod.status.containerStatuses.length }}</span>
+                <div class="info-item">
+                  <span class="info-label">Namespace:</span>
+                  <span class="info-value">{{ pod.namespace }}</span>
                 </div>
-              </div>
-              
-              <div class="pod-labels" v-if="pod.metadata.labels">
-                <div class="labels-title">Labels:</div>
-                <div class="labels-container">
-                  <span 
-                    class="label-tag" 
-                    v-for="(value, key) in pod.metadata.labels" 
-                    :key="key"
-                  >
-                    {{ key }}: {{ value }}
-                  </span>
+                <div class="info-item">
+                  <span class="info-label">Status:</span>
+                  <span class="info-value">{{ pod.status }}</span>
                 </div>
               </div>
             </div>
@@ -159,11 +146,10 @@ export default {
         }
 
         const data = await response.json();
+        console.log('Resposta da API:', data); // Debug log
         
-        // Processar a resposta JSON do Kubernetes
-        if (data.items && Array.isArray(data.items)) {
-          this.pods = data.items;
-        } else if (Array.isArray(data)) {
+        // Processar a resposta JSON do backend
+        if (Array.isArray(data)) {
           this.pods = data;
         } else {
           this.pods = [];
@@ -217,12 +203,12 @@ export default {
     viewPodDetails(pod) {
       // Implementar visualização de detalhes do pod
       console.log('Visualizar detalhes do pod:', pod);
-      alert(`Detalhes do pod: ${pod.metadata.name}\nNamespace: ${pod.metadata.namespace}\nStatus: ${pod.status.phase}`);
+      alert(`Detalhes do pod: ${pod.nome}\nNamespace: ${pod.namespace}\nStatus: ${pod.status}\nIP: ${pod.ip || 'N/A'}\nNode: ${pod.node || 'N/A'}`);
     },
 
     deletePod(pod) {
       // Implementar deleção do pod
-      if (confirm(`Tem certeza que deseja deletar o pod "${pod.metadata.name}"?`)) {
+      if (confirm(`Tem certeza que deseja deletar o pod "${pod.nome}"?`)) {
         console.log('Deletar pod:', pod);
         alert('Funcionalidade de deleção será implementada em breve');
       }
