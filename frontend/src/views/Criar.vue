@@ -1,37 +1,37 @@
 <template>
   <div class="criar-page">
     <div class="page-header">
-      <h1>Criar Recurso</h1>
-      <p>Crie novos recursos no Kubernetes</p>
+      <h1>Criar Pod</h1>
+      <p>Crie um novo pod no Kubernetes</p>
     </div>
 
     <div class="content-card">
       <form @submit.prevent="submitForm" class="form-container">
         <div class="form-section">
-          <h3>Informações Básicas</h3>
+          <h3>Informações do Pod</h3>
           
           <div class="form-group">
-            <label for="name">Nome do Recurso *</label>
+            <label for="podName">Nome do Container *</label>
             <input 
               type="text" 
-              id="name" 
-              v-model="form.name" 
+              id="podName" 
+              v-model="form.podName" 
               required
-              placeholder="Ex: meu-deployment"
+              placeholder="Ex: meu-novo-pod"
               class="form-input"
             >
           </div>
 
           <div class="form-group">
-            <label for="type">Tipo de Recurso *</label>
-            <select id="type" v-model="form.type" required class="form-select">
-              <option value="">Selecione o tipo</option>
-              <option value="Deployment">Deployment</option>
-              <option value="Service">Service</option>
-              <option value="ConfigMap">ConfigMap</option>
-              <option value="Secret">Secret</option>
-              <option value="Ingress">Ingress</option>
-            </select>
+            <label for="image">Imagem *</label>
+            <input 
+              type="text" 
+              id="image" 
+              v-model="form.image" 
+              required
+              placeholder="Ex: nginx:latest"
+              class="form-input"
+            >
           </div>
 
           <div class="form-group">
@@ -44,88 +44,6 @@
               placeholder="Ex: default"
               class="form-input"
             >
-          </div>
-        </div>
-
-        <div class="form-section">
-          <h3>Configurações</h3>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="replicas">Réplicas</label>
-              <input 
-                type="number" 
-                id="replicas" 
-                v-model.number="form.replicas" 
-                min="1"
-                class="form-input"
-              >
-            </div>
-
-            <div class="form-group">
-              <label for="image">Imagem Docker</label>
-              <input 
-                type="text" 
-                id="image" 
-                v-model="form.image" 
-                placeholder="Ex: nginx:latest"
-                class="form-input"
-              >
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="description">Descrição</label>
-            <textarea 
-              id="description" 
-              v-model="form.description" 
-              rows="3"
-              placeholder="Descreva o propósito deste recurso..."
-              class="form-textarea"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <h3>Labels e Annotations</h3>
-          
-          <div class="form-group">
-            <label>Labels</label>
-            <div class="key-value-pairs">
-              <div 
-                v-for="(label, index) in form.labels" 
-                :key="index" 
-                class="key-value-row"
-              >
-                <input 
-                  type="text" 
-                  v-model="label.key" 
-                  placeholder="Chave"
-                  class="form-input"
-                >
-                <span class="separator">:</span>
-                <input 
-                  type="text" 
-                  v-model="label.value" 
-                  placeholder="Valor"
-                  class="form-input"
-                >
-                <button 
-                  type="button" 
-                  @click="removeLabel(index)"
-                  class="btn btn-danger btn-sm"
-                >
-                  ✕
-                </button>
-              </div>
-              <button 
-                type="button" 
-                @click="addLabel"
-                class="btn btn-outline btn-sm"
-              >
-                + Adicionar Label
-              </button>
-            </div>
           </div>
         </div>
 
@@ -144,7 +62,7 @@
             :disabled="submitting"
           >
             <span v-if="submitting" class="spinner-small"></span>
-            {{ submitting ? 'Criando...' : 'Criar Recurso' }}
+            {{ submitting ? 'Criando Pod...' : 'Criar Pod' }}
           </button>
         </div>
       </form>
@@ -154,7 +72,7 @@
     <div v-if="showConfirmation" class="modal-overlay" @click="closeConfirmation">
       <div class="modal-content" @click.stop>
         <h3>Confirmar Criação</h3>
-        <p>Tem certeza que deseja criar o recurso <strong>{{ form.name }}</strong>?</p>
+        <p>Tem certeza que deseja criar o pod <strong>{{ form.podName }}</strong>?</p>
         <div class="modal-actions">
           <button @click="closeConfirmation" class="btn btn-outline">Cancelar</button>
           <button @click="confirmCreate" class="btn btn-primary">Confirmar</button>
@@ -172,13 +90,9 @@ export default {
       submitting: false,
       showConfirmation: false,
       form: {
-        name: '',
-        type: '',
+        podName: '',
         namespace: 'default',
-        replicas: 1,
-        image: '',
-        description: '',
-        labels: []
+        image: ''
       }
     }
   },
@@ -194,25 +108,30 @@ export default {
       this.showConfirmation = false;
       
       try {
-        // TODO: Inserir backend - chamada para API
-        console.log('Criando recurso:', this.form);
-        
-        // Simular delay da API
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Em produção, aqui seria:
-        // const response = await fetch('/api/resources', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(this.form)
-        // });
+        const response = await fetch('http://localhost:7000/createPod', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            podName: this.form.podName,
+            namespace: this.form.namespace,
+            image: this.form.image
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Pod criado com sucesso:', result);
         
         this.$router.push('/listar');
         this.showSuccessMessage();
         
       } catch (error) {
-        console.error('Erro ao criar recurso:', error);
-        // TODO: Inserir backend - tratamento de erro
+        console.error('Erro ao criar pod:', error);
         this.showErrorMessage();
       } finally {
         this.submitting = false;
@@ -224,37 +143,23 @@ export default {
     },
     
     validateForm() {
-      return this.form.name && this.form.type && this.form.namespace;
+      return this.form.podName && this.form.namespace && this.form.image;
     },
     
     resetForm() {
       this.form = {
-        name: '',
-        type: '',
+        podName: '',
         namespace: 'default',
-        replicas: 1,
-        image: '',
-        description: '',
-        labels: []
+        image: ''
       };
     },
     
-    addLabel() {
-      this.form.labels.push({ key: '', value: '' });
-    },
-    
-    removeLabel(index) {
-      this.form.labels.splice(index, 1);
-    },
-    
     showSuccessMessage() {
-      // TODO: Implementar notificação de sucesso
-      alert('Recurso criado com sucesso!');
+      alert('Pod criado com sucesso!');
     },
     
     showErrorMessage() {
-      // TODO: Implementar notificação de erro
-      alert('Erro ao criar recurso. Tente novamente.');
+      alert('Erro ao criar pod. Tente novamente.');
     }
   }
 }
@@ -262,132 +167,114 @@ export default {
 
 <style scoped>
 .criar-page {
-  max-width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  text-align: center;
+  margin-bottom: 3rem;
 }
 
 .page-header h1 {
-  color: #2d3748;
+  color: #e2e8f0;
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
   font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .page-header p {
-  color: #718096;
+  color: #a0aec0;
   font-size: 1.1rem;
 }
 
 .content-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+  border: 1px solid #4a5568;
+  backdrop-filter: blur(10px);
 }
 
 .form-container {
-  padding: 2rem;
+  padding: 3rem;
 }
 
 .form-section {
   margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.form-section:last-of-type {
-  border-bottom: none;
 }
 
 .form-section h3 {
-  color: #2d3748;
-  margin-bottom: 1.5rem;
-  font-size: 1.25rem;
+  color: #e2e8f0;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
   font-weight: 600;
+  text-align: center;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
-  color: #4a5568;
-  font-weight: 500;
+  margin-bottom: 0.75rem;
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
-.form-input,
-.form-select,
-.form-textarea {
+.form-input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  border: 2px solid #4a5568;
+  border-radius: 12px;
   font-size: 1rem;
   transition: all 0.3s ease;
+  background: rgba(26, 32, 44, 0.8);
+  color: #e2e8f0;
+  backdrop-filter: blur(10px);
 }
 
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
+.form-input:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+  transform: translateY(-2px);
 }
 
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.key-value-pairs {
-  space-y: 0.5rem;
-}
-
-.key-value-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.key-value-row input {
-  flex: 1;
-}
-
-.separator {
+.form-input::placeholder {
   color: #718096;
-  font-weight: bold;
 }
 
 .form-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
+  justify-content: center;
+  gap: 1.5rem;
   padding-top: 2rem;
-  border-top: 1px solid #e2e8f0;
+  margin-top: 2rem;
+  border-top: 1px solid #4a5568;
 }
 
 .btn {
-  padding: 0.75rem 1.5rem;
+  padding: 1rem 2rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1rem;
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 140px;
+  justify-content: center;
 }
 
 .btn:disabled {
@@ -396,40 +283,26 @@ export default {
 }
 
 .btn-primary {
-  background: #667eea;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #5a67d8;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .btn-outline {
   background: transparent;
   color: #667eea;
-  border: 1px solid #667eea;
+  border: 2px solid #667eea;
 }
 
 .btn-outline:hover:not(:disabled) {
   background: #667eea;
   color: white;
-}
-
-.btn-danger {
-  background: #e53e3e;
-  color: white;
-  padding: 0.5rem;
-  min-width: 40px;
-}
-
-.btn-danger:hover {
-  background: #c53030;
-}
-
-.btn-sm {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  transform: translateY(-2px);
 }
 
 .spinner-small {
@@ -453,42 +326,53 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(5px);
 }
 
 .modal-content {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  max-width: 400px;
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  padding: 2.5rem;
+  border-radius: 16px;
+  max-width: 450px;
   width: 90%;
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  border: 1px solid #4a5568;
+  backdrop-filter: blur(10px);
 }
 
 .modal-content h3 {
-  color: #2d3748;
+  color: #e2e8f0;
   margin-bottom: 1rem;
+  font-size: 1.5rem;
+  text-align: center;
 }
 
 .modal-content p {
-  color: #4a5568;
+  color: #a0aec0;
   margin-bottom: 2rem;
+  text-align: center;
+  line-height: 1.6;
 }
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 1rem;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
+  .criar-page {
+    padding: 1rem;
+  }
+  
+  .form-container {
+    padding: 2rem;
   }
   
   .form-actions {
@@ -497,7 +381,10 @@ export default {
   
   .btn {
     width: 100%;
-    justify-content: center;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
   }
 }
 </style>
