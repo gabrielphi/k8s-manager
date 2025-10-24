@@ -45,16 +45,6 @@
               <span class="nav-text" v-show="!sidebarCollapsed">Criar</span>
             </router-link>
           </li>
-          <li class="nav-item">
-            <router-link 
-              to="/deletar" 
-              class="nav-link"
-              :class="{ 'active': $route.path === '/deletar' }"
-            >
-              <span class="nav-icon">🗑️</span>
-              <span class="nav-text" v-show="!sidebarCollapsed">Deletar</span>
-            </router-link>
-          </li>
         </ul>
       </nav>
     </aside>

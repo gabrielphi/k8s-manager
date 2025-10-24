@@ -3,7 +3,6 @@ import Layout from '../components/Layout.vue'
 import Home from '../views/Home.vue'
 import Listar from '../views/Listar.vue'
 import Criar from '../views/Criar.vue'
-import Deletar from '../views/Deletar.vue'
 
 const routes = [
   {
@@ -25,11 +24,6 @@ const routes = [
         name: 'Criar',
         component: Criar
       },
-      {
-        path: 'deletar',
-        name: 'Deletar',
-        component: Deletar
-      }
     ]
   }
 ]

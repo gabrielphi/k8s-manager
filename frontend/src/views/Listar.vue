@@ -263,11 +263,36 @@ export default {
       alert(`Detalhes do pod: ${pod.nome}\nNamespace: ${pod.namespace}\nStatus: ${pod.status}\nIP: ${pod.ip || 'N/A'}\nNode: ${pod.node || 'N/A'}`);
     },
 
-    deletePod(pod) {
-      // Implementar deleção do pod
-      if (confirm(`Tem certeza que deseja deletar o pod "${pod.nome}"?`)) {
-        console.log('Deletar pod:', pod);
-        alert('Funcionalidade de deleção será implementada em breve');
+    async deletePod(pod) {
+      if (confirm(`Tem certeza que deseja deletar o pod "${pod.nome}" do namespace "${pod.namespace}"?`)) {
+        try {
+          const response = await fetch('http://localhost:7000/deletePod', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              nome: pod.nome,
+              namespace: pod.namespace
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          console.log('Pod deletado com sucesso:', result);
+          
+          // Remover o pod da lista local
+          this.pods = this.pods.filter(p => p.nome !== pod.nome);
+          
+          alert(`Pod "${pod.nome}" deletado com sucesso!`);
+          
+        } catch (error) {
+          console.error('Erro ao deletar pod:', error);
+          alert(`Erro ao deletar pod: ${error.message}`);
+        }
       }
     }
   }
