@@ -227,32 +227,33 @@ export default {
 }
 
 .page-header h1 {
-  color: #2d3748;
+  color: #e2e8f0;
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
   font-weight: 700;
 }
 
 .page-header p {
-  color: #718096;
+  color: #a0aec0;
   font-size: 1.1rem;
 }
 
 .content-card {
-  background: white;
+  background: #2d3748;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+  border: 1px solid #4a5568;
 }
 
 .card-header {
   padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border-bottom: 1px solid #4a5568;
+  background: #4a5568;
 }
 
 .card-header h2 {
-  color: #2d3748;
+  color: #e2e8f0;
   margin: 0 0 1rem 0;
   font-size: 1.5rem;
 }
@@ -272,21 +273,22 @@ export default {
 .namespace-input {
   flex: 1;
   padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #4a5568;
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.3s ease;
-  background: white;
+  background: #1a202c;
+  color: #e2e8f0;
 }
 
 .namespace-input:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
 .namespace-input::placeholder {
-  color: #a0aec0;
+  color: #718096;
 }
 
 .loading-state {
@@ -294,13 +296,13 @@ export default {
   flex-direction: column;
   align-items: center;
   padding: 3rem;
-  color: #718096;
+  color: #a0aec0;
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #e2e8f0;
+  border: 4px solid #4a5568;
   border-top: 4px solid #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -315,7 +317,7 @@ export default {
 .empty-state {
   text-align: center;
   padding: 3rem;
-  color: #718096;
+  color: #a0aec0;
 }
 
 .empty-icon {
@@ -324,14 +326,14 @@ export default {
 }
 
 .empty-state h3 {
-  color: #2d3748;
+  color: #e2e8f0;
   margin-bottom: 0.5rem;
 }
 
 .error-state {
   text-align: center;
   padding: 3rem;
-  color: #e53e3e;
+  color: #fc8181;
 }
 
 .error-icon {
@@ -340,7 +342,7 @@ export default {
 }
 
 .error-state h3 {
-  color: #e53e3e;
+  color: #fc8181;
   margin-bottom: 0.5rem;
 }
 
@@ -354,11 +356,11 @@ export default {
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid #4a5568;
 }
 
 .pods-header h3 {
-  color: #2d3748;
+  color: #e2e8f0;
   margin: 0;
   font-size: 1.3rem;
 }
@@ -374,7 +376,7 @@ export default {
 }
 
 .pods-count {
-  color: #718096;
+  color: #a0aec0;
   font-size: 0.9rem;
   font-weight: 500;
 }
@@ -386,17 +388,17 @@ export default {
 }
 
 .pod-card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: #4a5568;
+  border: 1px solid #718096;
   border-radius: 12px;
   padding: 1.5rem;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .pod-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
   border-color: #667eea;
 }
 
@@ -406,20 +408,20 @@ export default {
   align-items: flex-start;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #718096;
 }
 
 .pod-name h4 {
-  color: #2d3748;
+  color: #e2e8f0;
   margin: 0 0 0.5rem 0;
   font-size: 1.3rem;
   font-weight: 600;
 }
 
 .pod-namespace {
-  color: #718096;
+  color: #a0aec0;
   font-size: 0.9rem;
-  background: #f7fafc;
+  background: #2d3748;
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
 }
@@ -476,7 +478,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #f7fafc;
+  border-bottom: 1px solid #718096;
 }
 
 .info-item:last-child {
@@ -484,13 +486,13 @@ export default {
 }
 
 .info-label {
-  color: #718096;
+  color: #a0aec0;
   font-weight: 500;
   font-size: 0.9rem;
 }
 
 .info-value {
-  color: #2d3748;
+  color: #e2e8f0;
   font-weight: 600;
   font-size: 0.9rem;
   word-break: break-all;
@@ -503,7 +505,7 @@ export default {
 }
 
 .labels-title {
-  color: #718096;
+  color: #a0aec0;
   font-weight: 500;
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
@@ -516,13 +518,13 @@ export default {
 }
 
 .label-tag {
-  background: #e6fffa;
-  color: #234e52;
+  background: #2d3748;
+  color: #68d391;
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
   font-size: 0.8rem;
   font-weight: 500;
-  border: 1px solid #b2f5ea;
+  border: 1px solid #4a5568;
 }
 
 .pod-actions {
@@ -530,7 +532,7 @@ export default {
   gap: 0.5rem;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #f7fafc;
+  border-top: 1px solid #718096;
 }
 
 .btn {
@@ -583,12 +585,12 @@ export default {
 }
 
 .btn-danger {
-  background: #e53e3e;
-  color: white;
+  background: #fc8181;
+  color: #1a202c;
 }
 
 .btn-danger:hover {
-  background: #c53030;
+  background: #f56565;
 }
 
 .btn-sm {

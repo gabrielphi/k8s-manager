@@ -21,33 +21,33 @@ export default {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2d3748;
-  background-color: #f8fafc;
+  color: #e2e8f0;
+  background-color: #1a202c;
   min-height: 100vh;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #f8fafc;
+  background-color: #1a202c;
 }
 
-/* Scrollbar personalizada */
+/* Scrollbar personalizada - Tema Escuro */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #2d3748;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
+  background: #4a5568;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
+  background: #718096;
 }
 
 /* Transições suaves */

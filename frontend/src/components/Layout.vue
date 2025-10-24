@@ -88,19 +88,20 @@ export default {
 .layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: #1a202c;
 }
 
 /* Sidebar */
 .sidebar {
   width: 250px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  color: #e2e8f0;
   transition: all 0.3s ease;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
   position: fixed;
   height: 100vh;
   z-index: 1000;
+  border-right: 1px solid #4a5568;
 }
 
 .sidebar-collapsed {
@@ -109,7 +110,7 @@ export default {
 
 .sidebar-header {
   padding: 1.5rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #4a5568;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -199,7 +200,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 1rem 1.5rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #a0aec0;
   text-decoration: none;
   transition: all 0.3s ease;
   border-radius: 0 25px 25px 0;
@@ -207,13 +208,13 @@ export default {
 }
 
 .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  background-color: #4a5568;
+  color: #e2e8f0;
   transform: translateX(5px);
 }
 
 .nav-link.active {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #667eea;
   color: white;
   font-weight: bold;
 }

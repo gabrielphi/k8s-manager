@@ -117,7 +117,7 @@ export default {
 .hero-content h1 {
   font-size: 3.5rem;
   font-weight: 800;
-  color: #2d3748;
+  color: #e2e8f0;
   margin-bottom: 1rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
@@ -127,7 +127,7 @@ export default {
 
 .hero-subtitle {
   font-size: 1.25rem;
-  color: #718096;
+  color: #a0aec0;
   margin-bottom: 2rem;
   line-height: 1.6;
 }
@@ -163,7 +163,7 @@ export default {
 .stats-section h2 {
   text-align: center;
   font-size: 2.5rem;
-  color: #2d3748;
+  color: #e2e8f0;
   margin-bottom: 3rem;
   font-weight: 700;
 }
@@ -175,18 +175,18 @@ export default {
 }
 
 .feature-card {
-  background: white;
+  background: #2d3748;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   text-align: center;
   transition: all 0.3s ease;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #4a5568;
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.4);
 }
 
 .feature-icon {
@@ -195,14 +195,14 @@ export default {
 }
 
 .feature-card h3 {
-  color: #2d3748;
+  color: #e2e8f0;
   margin-bottom: 1rem;
   font-size: 1.5rem;
   font-weight: 600;
 }
 
 .feature-card p {
-  color: #718096;
+  color: #a0aec0;
   line-height: 1.6;
 }
 
@@ -213,18 +213,18 @@ export default {
 }
 
 .stat-card {
-  background: white;
+  background: #2d3748;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   text-align: center;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #4a5568;
   transition: all 0.3s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
 .stat-number {
@@ -235,7 +235,7 @@ export default {
 }
 
 .stat-label {
-  color: #718096;
+  color: #a0aec0;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
