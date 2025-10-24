@@ -48,4 +48,5 @@ func listPodsHandler(w http.ResponseWriter, r *http.Request) {
 
 func Listen() {
 	http.HandleFunc("GET /listAllPods/{namespace}", listPodsHandler)
+	log.Fatal(http.ListenAndServe(":7000", nil))
 }
