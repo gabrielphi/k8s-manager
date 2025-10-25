@@ -12,6 +12,17 @@ services:
     networks:
       - k8s-manager-network
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "7000:7000"
+    container_name: k8s-manager-backend
+    restart: unless-stopped
+    networks:
+      - k8s-manager-network
+
 networks:
   k8s-manager-network:
     driver: bridge

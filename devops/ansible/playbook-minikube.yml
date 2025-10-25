@@ -1,0 +1,5 @@
+- name: Configure Minikube
+  hosts: default
+  become: yes
+  roles:
+    - role: minikube

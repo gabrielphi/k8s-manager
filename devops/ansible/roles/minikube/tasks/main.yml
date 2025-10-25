@@ -1,0 +1,12 @@
+- name: Include docker configuration
+  import_tasks: docker.yml
+  tags: ['docker']
+
+- name: Download and install latest minikube binary
+  ansible.builtin.get_url:
+    url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    dest: /usr/local/bin/minikube
+    mode: '0755'
+    
+- name: Run minikube start
+  ansible.builtin.command: minikube start --driver=docker

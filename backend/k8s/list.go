@@ -4,8 +4,9 @@ package k8s
 import (
 	"context"
 	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type PodInfo struct {
@@ -52,7 +53,6 @@ func ListNamespaces() ([]string, error) {
 		log.Printf("❌ Erro ao listar namespaces: %v", err)
 		return nil, fmt.Errorf("erro ao listar namespaces: %w", err)
 	}
-
 	log.Printf("📋 Total de namespaces encontrados: %d", len(namespace.Items))
 
 	var namespaces []string

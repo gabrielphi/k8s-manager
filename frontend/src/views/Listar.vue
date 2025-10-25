@@ -290,7 +290,7 @@ export default {
       if (confirm(`Tem certeza que deseja deletar o pod "${pod.nome}" do namespace "${pod.namespace}"?`)) {
         try {
           const response = await fetch(buildApiUrl(config.ENDPOINTS.DELETE_POD), {
-            method: 'DELETE',
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
