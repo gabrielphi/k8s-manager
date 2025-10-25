@@ -72,16 +72,18 @@ func listPodsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 func listNsHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. Extrai o valor do placeholder "{namespace}" da URL
+	log.Printf("📋 listNsHandler chamado - método: %s", r.Method)
 
 	// 3. [IMPORTANTE] Trate o erro da sua função! Não ignore com _
 	jsonAllNs, err := k8s.ListNamespaces()
 	if err != nil {
 		// Loga o erro no servidor
-		log.Printf("ERRO: Falha ao listar NS '%s': %v", jsonAllNs, err)
+		log.Printf("❌ ERRO: Falha ao listar namespaces: %v", err)
 		http.Error(w, "Erro ao buscar dados do Kubernetes", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("✅ Namespaces encontrados: %v", jsonAllNs)
 
 	// 4. [MELHORIA] Defina o Content-Type para que os clientes saibam que é JSON
 	w.Header().Set("Content-Type", "application/json")
@@ -91,12 +93,13 @@ func listNsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Se a serialização falhar (raro, mas possível), avise o servidor.
 		// Não use log.Fatal(), pois isso derruba o servidor!
-		log.Printf("ERRO: Falha ao serializar JSON: %v", err)
+		log.Printf("❌ ERRO: Falha ao serializar JSON: %v", err)
 		http.Error(w, "Erro ao formatar resposta", http.StatusInternalServerError)
 		return
 	}
 
 	// 6. Envia a resposta
+	log.Printf("📤 Enviando resposta com %d namespaces", len(jsonAllNs))
 	w.Write(jsonResponse)
 }
 

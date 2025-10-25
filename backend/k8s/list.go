@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"log"
 )
 
 type PodInfo struct {
@@ -44,13 +45,22 @@ func ListPods(namespace string) ([]PodInfo, error) {
 	return podsInfo, nil
 }
 func ListNamespaces() ([]string, error) {
+	log.Printf("🔍 ListNamespaces: Iniciando busca por namespaces")
+
 	namespace, err := client.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
+		log.Printf("❌ Erro ao listar namespaces: %v", err)
 		return nil, fmt.Errorf("erro ao listar namespaces: %w", err)
 	}
+
+	log.Printf("📋 Total de namespaces encontrados: %d", len(namespace.Items))
+
 	var namespaces []string
 	for _, ns := range namespace.Items {
 		namespaces = append(namespaces, ns.Name)
+		log.Printf("📝 Namespace: %s", ns.Name)
 	}
+
+	log.Printf("✅ ListNamespaces: Retornando %d namespaces", len(namespaces))
 	return namespaces, nil
 }

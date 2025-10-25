@@ -130,6 +130,8 @@
 </template>
 
 <script>
+import { buildApiUrl, config } from '@/config/env.js'
+
 export default {
   name: 'Listar',
   data() {
@@ -152,23 +154,33 @@ export default {
       this.error = null;
 
       try {
-        const response = await fetch('http://localhost:7000/listAllNs');
+        // Verificação de segurança para config
+        if (!config || !config.ENDPOINTS) {
+          throw new Error('Configuração não carregada corretamente');
+        }
+        
+        const url = buildApiUrl(config.ENDPOINTS.NAMESPACES);
+        console.log('🔍 Carregando namespaces da URL:', url);
+        
+        const response = await fetch(url);
         
         if (!response.ok) {
           throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log('Namespaces carregados:', data);
+        console.log('✅ Namespaces carregados:', data);
         
         if (Array.isArray(data)) {
           this.namespaces = data;
+          console.log('📋 Namespaces processados:', this.namespaces);
         } else {
+          console.warn('⚠️ Resposta não é um array:', data);
           this.namespaces = [];
         }
 
       } catch (error) {
-        console.error('Erro ao carregar namespaces:', error);
+        console.error('❌ Erro ao carregar namespaces:', error);
         this.error = `Erro ao carregar namespaces: ${error.message}`;
         this.namespaces = [];
       } finally {
@@ -187,19 +199,30 @@ export default {
       this.currentNamespace = this.selectedNamespace;
 
       try {
-        const response = await fetch(`http://localhost:7000/listAllPods/${this.currentNamespace}`);
+        // Verificação de segurança para config
+        if (!config || !config.ENDPOINTS) {
+          throw new Error('Configuração não carregada corretamente');
+        }
+        
+        const url = buildApiUrl(`${config.ENDPOINTS.PODS}/${this.currentNamespace}`);
+        console.log('🔍 Buscando pods da URL:', url);
+        console.log('📋 Namespace selecionado:', this.currentNamespace);
+        
+        const response = await fetch(url);
         
         if (!response.ok) {
           throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log('Resposta da API:', data); // Debug log
+        console.log('✅ Resposta da API:', data);
         
         // Processar a resposta JSON do backend
         if (Array.isArray(data)) {
           this.pods = data;
+          console.log('📋 Pods processados:', this.pods);
         } else {
+          console.warn('⚠️ Resposta não é um array:', data);
           this.pods = [];
         }
 
@@ -208,7 +231,7 @@ export default {
         }
 
       } catch (error) {
-        console.error('Erro ao buscar pods:', error);
+        console.error('❌ Erro ao buscar pods:', error);
         this.error = `Erro ao buscar pods: ${error.message}`;
         this.pods = [];
       } finally {
@@ -266,7 +289,7 @@ export default {
     async deletePod(pod) {
       if (confirm(`Tem certeza que deseja deletar o pod "${pod.nome}" do namespace "${pod.namespace}"?`)) {
         try {
-          const response = await fetch('http://localhost:7000/deletePod', {
+          const response = await fetch(buildApiUrl(config.ENDPOINTS.DELETE_POD), {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',

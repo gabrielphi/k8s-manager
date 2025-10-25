@@ -83,6 +83,8 @@
 </template>
 
 <script>
+import { buildApiUrl, config } from '@/config/env.js'
+
 export default {
   name: 'Criar',
   data() {
@@ -108,7 +110,7 @@ export default {
       this.showConfirmation = false;
       
       try {
-        const response = await fetch('http://localhost:7000/createPod', {
+        const response = await fetch(buildApiUrl(config.ENDPOINTS.CREATE_POD), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
