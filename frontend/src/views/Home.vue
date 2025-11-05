@@ -1,22 +1,20 @@
 <template>
-  <div class="home">
+  <div class="home container-page py-8">
     <div class="hero-section">
       <div class="hero-content">
         <h1>K8s Manager</h1>
         <p class="hero-subtitle">Gerencie seus recursos Kubernetes de forma simples e eficiente</p>
         <div class="hero-actions">
           <router-link to="/listar" class="btn btn-primary btn-large">
-            <span class="btn-icon">📋</span>
             Ver Recursos
           </router-link>
           <router-link to="/criar" class="btn btn-outline btn-large">
-            <span class="btn-icon">➕</span>
             Criar Novo
           </router-link>
         </div>
       </div>
       <div class="hero-image">
-        <div class="k8s-logo">☸️</div>
+        <div class="k8s-logo"></div>
       </div>
     </div>
 
@@ -24,17 +22,17 @@
       <h2>Funcionalidades</h2>
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon">📋</div>
+          <div class="feature-icon"></div>
           <h3>Listar Recursos</h3>
           <p>Visualize todos os seus recursos Kubernetes em uma interface intuitiva</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">➕</div>
+          <div class="feature-icon"></div>
           <h3>Criar Recursos</h3>
           <p>Crie novos deployments, services e outros recursos com facilidade</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">🗑️</div>
+          <div class="feature-icon"></div>
           <h3>Deletar Recursos</h3>
           <p>Remova recursos de forma segura com confirmação e validação</p>
         </div>

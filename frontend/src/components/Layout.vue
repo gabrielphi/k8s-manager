@@ -21,7 +21,6 @@
               class="nav-link"
               :class="{ 'active': $route.path === '/' }"
             >
-              <span class="nav-icon">🏠</span>
               <span class="nav-text" v-show="!sidebarCollapsed">Home</span>
             </router-link>
           </li>
@@ -31,7 +30,6 @@
               class="nav-link"
               :class="{ 'active': $route.path === '/listar' }"
             >
-              <span class="nav-icon">📋</span>
               <span class="nav-text" v-show="!sidebarCollapsed">Listar</span>
             </router-link>
           </li>
@@ -51,7 +49,7 @@
 
     <!-- Conteúdo Principal -->
     <main class="main-content" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
-      <div class="content-wrapper">
+      <div class="content-wrapper container-page py-8">
         <router-view />
       </div>
     </main>

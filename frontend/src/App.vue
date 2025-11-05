@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" class="min-h-screen">
     <router-view />
   </div>
 </template>
@@ -11,80 +11,13 @@ export default {
 </script>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-#app {
+/* Mantemos apenas ajustes mínimos, o resto virá do Tailwind */
+:root {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #e2e8f0;
-  background-color: #1a202c;
-  min-height: 100vh;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #1a202c;
-}
-
-/* Scrollbar personalizada - Tema Escuro */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #2d3748;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #4a5568;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #718096;
-}
-
-/* Transições suaves */
-* {
-  transition: all 0.3s ease;
-}
-
-/* Reset de estilos para inputs */
-input, select, textarea, button {
-  font-family: inherit;
-  font-size: inherit;
 }
 
 /* Estilos para links do router */
 .router-link-active {
   text-decoration: none;
-}
-
-/* Animações */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

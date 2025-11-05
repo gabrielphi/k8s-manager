@@ -22,7 +22,6 @@
               type="button"
               @click="resourceType = t.value"
             >
-              <span class="tab-emoji" aria-hidden="true">{{ t.icon }}</span>
               <span class="tab-text">{{ t.label }}</span>
             </button>
           </div>
@@ -178,11 +177,11 @@ export default {
       showConfirmation: false,
       resourceType: 'container',
       tabs: [
-        { value: 'namespace', label: 'Namespace', icon: '📁' },
-        { value: 'container', label: 'Container', icon: '📦' },
-        { value: 'deployment', label: 'Deployment', icon: '🚀' },
-        { value: 'secret', label: 'Secret', icon: '🔑' },
-        { value: 'ingress', label: 'Ingress', icon: '🌐' }
+        { value: 'namespace', label: 'Namespace' },
+        { value: 'container', label: 'Container' },
+        { value: 'deployment', label: 'Deployment' },
+        { value: 'secret', label: 'Secret' },
+        { value: 'ingress', label: 'Ingress' }
       ],
       form: {
         podName: '',
