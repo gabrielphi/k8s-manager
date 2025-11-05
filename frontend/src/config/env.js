@@ -14,6 +14,7 @@ const config = {
     NAMESPACES: process.env.VUE_APP_API_ENDPOINTS_NAMESPACES || '/listAllNs',
     PODS: process.env.VUE_APP_API_ENDPOINTS_PODS || '/listAllPods',
     CREATE_POD: process.env.VUE_APP_API_ENDPOINTS_CREATE_POD || '/createPod',
+    CREATE_RESOURCE: process.env.VUE_APP_API_ENDPOINTS_CREATE_RESOURCE || '/createResource',
     DELETE_POD: process.env.VUE_APP_API_ENDPOINTS_DELETE_POD || '/deletePod'
   }
 }

@@ -236,16 +236,106 @@ func deletePodHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Pod Deletado com sucesso: %s", podReq.Name)
 }
 
+// CreateResourceRequest define um payload unificado para criação de recursos
+// kind: "container" | "deployment" | "secret" | "ingress"
+type CreateResourceRequest struct {
+	Kind          string            `json:"kind"`
+	Namespace     string            `json:"namespace"`
+	Name          string            `json:"name"`
+	Image         string            `json:"image,omitempty"`
+	Replicas      *int32            `json:"replicas,omitempty"`
+	ContainerPort *int32            `json:"containerPort,omitempty"`
+	SecretType    string            `json:"secretType,omitempty"`
+	Data          map[string]string `json:"data,omitempty"`
+	Host          string            `json:"host,omitempty"`
+	ServiceName   string            `json:"serviceName,omitempty"`
+	ServicePort   *int32            `json:"servicePort,omitempty"`
+}
+
+func createResourceHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("createResourceHandler chamado com método: %s", r.Method)
+
+	if r.Method != http.MethodPost {
+		log.Printf("Método não permitido: %s (esperado: POST)", r.Method)
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req CreateResourceRequest
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&req); err != nil {
+		if err == io.EOF {
+			http.Error(w, "Corpo da requisição não pode ser vazio", http.StatusBadRequest)
+			return
+		}
+		log.Printf("ERRO ao decodificar JSON: %v", err)
+		http.Error(w, "JSON mal formatado", http.StatusBadRequest)
+		return
+	}
+
+	if req.Kind == "" || req.Namespace == "" || req.Name == "" {
+		http.Error(w, "Campos 'kind', 'namespace' e 'name' são obrigatórios", http.StatusBadRequest)
+		return
+	}
+
+	var err error
+	switch req.Kind {
+	case "container", "pod":
+		if req.Image == "" {
+			http.Error(w, "Campo 'image' é obrigatório para container/pod", http.StatusBadRequest)
+			return
+		}
+		err = k8s.CreatePod(req.Namespace, req.Image, req.Name)
+	case "deployment":
+		if req.Image == "" || req.Replicas == nil {
+			http.Error(w, "Campos 'image' e 'replicas' são obrigatórios para deployment", http.StatusBadRequest)
+			return
+		}
+		var cport int32 = 0
+		if req.ContainerPort != nil {
+			cport = *req.ContainerPort
+		}
+		err = k8s.CreateDeployment(req.Namespace, req.Name, req.Image, *req.Replicas, cport)
+	case "secret":
+		if req.SecretType == "" {
+			req.SecretType = "Opaque"
+		}
+		err = k8s.CreateSecret(req.Namespace, req.Name, req.SecretType, req.Data)
+	case "ingress":
+		if req.Host == "" || req.ServiceName == "" || req.ServicePort == nil {
+			http.Error(w, "Campos 'host', 'serviceName' e 'servicePort' são obrigatórios para ingress", http.StatusBadRequest)
+			return
+		}
+		err = k8s.CreateIngress(req.Namespace, req.Name, req.Host, req.ServiceName, *req.ServicePort)
+	default:
+		http.Error(w, "'kind' inválido. Use: container, deployment, secret, ingress", http.StatusBadRequest)
+		return
+	}
+
+	if err != nil {
+		log.Printf("ERRO ao criar recurso: %v", err)
+		http.Error(w, fmt.Sprintf("Erro ao criar recurso: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	response := map[string]string{"status": "sucesso", "message": fmt.Sprintf("Recurso '%s' (%s) está sendo criado.", req.Name, req.Kind)}
+	json.NewEncoder(w).Encode(response)
+}
+
 func Listen() {
 	// Aplica o middleware CORS ao handler
 	http.HandleFunc("GET /listAllPods/{namespace}", corsMiddleware(listPodsHandler))
 	http.HandleFunc("POST /createPod", corsMiddleware(createPodHandler))
+	http.HandleFunc("POST /createResource", corsMiddleware(createResourceHandler))
 	http.HandleFunc("GET /listAllNs", corsMiddleware(listNsHandler))
 	http.HandleFunc("POST /deletePod", corsMiddleware(deletePodHandler))
 
 	// Adiciona handler para requisições OPTIONS (preflight) para ambas as rotas
 	http.HandleFunc("OPTIONS /listAllPods/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /createPod", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
+	http.HandleFunc("OPTIONS /createResource", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /listAllNs", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /deletePod", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 

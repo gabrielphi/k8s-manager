@@ -1,35 +1,33 @@
 <template>
   <div class="criar-page">
     <div class="page-header">
-      <h1>Criar Pod</h1>
-      <p>Crie um novo pod no Kubernetes</p>
+      <h1>Criar Recurso</h1>
+      <p>Crie Container, Deployment, Secret ou Ingress no Kubernetes</p>
     </div>
 
     <div class="content-card">
       <form @submit.prevent="submitForm" class="form-container">
         <div class="form-section">
-          <h3>Informações do Pod</h3>
-          
+          <h3>Configuração</h3>
+
           <div class="form-group">
-            <label for="podName">Nome do Container *</label>
+            <label for="kind">Tipo de Recurso *</label>
+            <select id="kind" v-model="resourceType" class="form-input">
+              <option value="container">Container</option>
+              <option value="deployment">Deployment</option>
+              <option value="secret">Secret</option>
+              <option value="ingress">Ingress</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="podName">Nome *</label>
             <input 
               type="text" 
               id="podName" 
               v-model="form.podName" 
               required
-              placeholder="Ex: meu-novo-pod"
-              class="form-input"
-            >
-          </div>
-
-          <div class="form-group">
-            <label for="image">Imagem *</label>
-            <input 
-              type="text" 
-              id="image" 
-              v-model="form.image" 
-              required
-              placeholder="Ex: nginx:latest"
+              placeholder="Ex: meu-recurso"
               class="form-input"
             >
           </div>
@@ -44,6 +42,86 @@
               placeholder="Ex: default"
               class="form-input"
             >
+          </div>
+        </div>
+
+        <!-- Campos específicos: Container -->
+        <div class="form-section" v-if="resourceType === 'container'">
+          <h3>Container</h3>
+          <div class="form-group">
+            <label for="image">Imagem *</label>
+            <input 
+              type="text" 
+              id="image" 
+              v-model="form.image" 
+              placeholder="Ex: nginx:latest"
+              class="form-input"
+            >
+          </div>
+        </div>
+
+        <!-- Campos específicos: Deployment -->
+        <div class="form-section" v-if="resourceType === 'deployment'">
+          <h3>Deployment</h3>
+          <div class="form-group">
+            <label for="depImage">Imagem *</label>
+            <input 
+              type="text" 
+              id="depImage" 
+              v-model="deployment.image" 
+              placeholder="Ex: nginx:latest"
+              class="form-input"
+            >
+          </div>
+          <div class="form-row">
+            <div class="form-group half">
+              <label for="replicas">Réplicas *</label>
+              <input type="number" id="replicas" v-model.number="deployment.replicas" min="1" class="form-input" />
+            </div>
+            <div class="form-group half">
+              <label for="containerPort">Porta do Container</label>
+              <input type="number" id="containerPort" v-model.number="deployment.containerPort" min="1" class="form-input" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos específicos: Secret -->
+        <div class="form-section" v-if="resourceType === 'secret'">
+          <h3>Secret</h3>
+          <div class="form-group">
+            <label for="secretType">Tipo</label>
+            <select id="secretType" v-model="secret.secretType" class="form-input">
+              <option value="Opaque">Opaque</option>
+              <option value="kubernetes.io/dockerconfigjson">dockerconfigjson</option>
+              <option value="kubernetes.io/basic-auth">basic-auth</option>
+            </select>
+          </div>
+          <div class="kv-list">
+            <div class="kv-row" v-for="(pair, idx) in secret.pairs" :key="idx">
+              <input class="form-input" type="text" v-model="pair.key" placeholder="Chave"/>
+              <input class="form-input" type="text" v-model="pair.value" placeholder="Valor"/>
+              <button class="btn btn-outline small" type="button" @click="removePair(idx)">Remover</button>
+            </div>
+            <button class="btn btn-secondary" type="button" @click="addPair">+ Adicionar Par</button>
+          </div>
+        </div>
+
+        <!-- Campos específicos: Ingress -->
+        <div class="form-section" v-if="resourceType === 'ingress'">
+          <h3>Ingress</h3>
+          <div class="form-group">
+            <label for="host">Host *</label>
+            <input type="text" id="host" v-model="ingress.host" class="form-input" placeholder="app.exemplo.com"/>
+          </div>
+          <div class="form-row">
+            <div class="form-group half">
+              <label for="serviceName">Service Name *</label>
+              <input type="text" id="serviceName" v-model="ingress.serviceName" class="form-input" placeholder="meu-service"/>
+            </div>
+            <div class="form-group half">
+              <label for="servicePort">Service Port *</label>
+              <input type="number" id="servicePort" v-model.number="ingress.servicePort" min="1" class="form-input" placeholder="80"/>
+            </div>
           </div>
         </div>
 
@@ -62,7 +140,7 @@
             :disabled="submitting"
           >
             <span v-if="submitting" class="spinner-small"></span>
-            {{ submitting ? 'Criando Pod...' : 'Criar Pod' }}
+            {{ submitting ? `Criando ${kindLabel}...` : `Criar ${kindLabel}` }}
           </button>
         </div>
       </form>
@@ -72,7 +150,7 @@
     <div v-if="showConfirmation" class="modal-overlay" @click="closeConfirmation">
       <div class="modal-content" @click.stop>
         <h3>Confirmar Criação</h3>
-        <p>Tem certeza que deseja criar o pod <strong>{{ form.podName }}</strong>?</p>
+        <p>Tem certeza que deseja criar o {{ kindLabel }} <strong>{{ form.podName }}</strong>?</p>
         <div class="modal-actions">
           <button @click="closeConfirmation" class="btn btn-outline">Cancelar</button>
           <button @click="confirmCreate" class="btn btn-primary">Confirmar</button>
@@ -91,10 +169,36 @@ export default {
     return {
       submitting: false,
       showConfirmation: false,
+      resourceType: 'container',
       form: {
         podName: '',
         namespace: 'default',
         image: ''
+      },
+      deployment: {
+        image: '',
+        replicas: 1,
+        containerPort: null
+      },
+      secret: {
+        secretType: 'Opaque',
+        pairs: [{ key: '', value: '' }]
+      },
+      ingress: {
+        host: '',
+        serviceName: '',
+        servicePort: null
+      }
+    }
+  },
+  computed: {
+    kindLabel() {
+      switch (this.resourceType) {
+        case 'container': return 'Container';
+        case 'deployment': return 'Deployment';
+        case 'secret': return 'Secret';
+        case 'ingress': return 'Ingress';
+        default: return 'Recurso';
       }
     }
   },
@@ -110,58 +214,112 @@ export default {
       this.showConfirmation = false;
       
       try {
-        const response = await fetch(buildApiUrl(config.ENDPOINTS.CREATE_POD), {
+        const payload = this.buildPayload();
+        const response = await fetch(buildApiUrl(config.ENDPOINTS.CREATE_RESOURCE), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            podName: this.form.podName,
-            namespace: this.form.namespace,
-            image: this.form.image
-          })
+          body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
-          throw new Error(`Erro HTTP: ${response.status}`);
+          const text = await response.text();
+          throw new Error(`Erro HTTP ${response.status}: ${text}`);
         }
 
         const result = await response.json();
-        console.log('Pod criado com sucesso:', result);
+        console.log('Recurso criado com sucesso:', result);
         
         this.$router.push('/listar');
         this.showSuccessMessage();
         
       } catch (error) {
-        console.error('Erro ao criar pod:', error);
-        this.showErrorMessage();
+        console.error('Erro ao criar recurso:', error);
+        this.showErrorMessage(error?.message);
       } finally {
         this.submitting = false;
       }
     },
     
+    buildPayload() {
+      const base = {
+        kind: this.resourceType,
+        namespace: this.form.namespace,
+        name: this.form.podName
+      };
+      if (this.resourceType === 'container') {
+        return { ...base, image: this.form.image };
+      }
+      if (this.resourceType === 'deployment') {
+        const payload = {
+          ...base,
+          image: this.deployment.image,
+          replicas: Number(this.deployment.replicas)
+        };
+        if (this.deployment.containerPort) payload.containerPort = Number(this.deployment.containerPort);
+        return payload;
+      }
+      if (this.resourceType === 'secret') {
+        const data = {};
+        this.secret.pairs.forEach(p => {
+          if (p.key) data[p.key] = p.value || '';
+        });
+        return { ...base, secretType: this.secret.secretType, data };
+      }
+      if (this.resourceType === 'ingress') {
+        return { ...base, host: this.ingress.host, serviceName: this.ingress.serviceName, servicePort: Number(this.ingress.servicePort) };
+      }
+      return base;
+    },
+
     closeConfirmation() {
       this.showConfirmation = false;
     },
     
     validateForm() {
-      return this.form.podName && this.form.namespace && this.form.image;
+      if (!this.form.podName || !this.form.namespace) return false;
+      switch (this.resourceType) {
+        case 'container':
+          return !!this.form.image;
+        case 'deployment':
+          return !!this.deployment.image && Number(this.deployment.replicas) >= 1;
+        case 'secret': {
+          const hasValid = this.secret.pairs.some(p => p.key && p.value !== undefined);
+          return hasValid;
+        }
+        case 'ingress':
+          return !!this.ingress.host && !!this.ingress.serviceName && Number(this.ingress.servicePort) > 0;
+        default:
+          return true;
+      }
     },
     
     resetForm() {
+      this.resourceType = 'container';
       this.form = {
         podName: '',
         namespace: 'default',
         image: ''
       };
+      this.deployment = { image: '', replicas: 1, containerPort: null };
+      this.secret = { secretType: 'Opaque', pairs: [{ key: '', value: '' }] };
+      this.ingress = { host: '', serviceName: '', servicePort: null };
+    },
+
+    addPair() {
+      this.secret.pairs.push({ key: '', value: '' });
+    },
+    removePair(index) {
+      this.secret.pairs.splice(index, 1);
     },
     
     showSuccessMessage() {
-      alert('Pod criado com sucesso!');
+      alert(`${this.kindLabel} criado com sucesso!`);
     },
     
-    showErrorMessage() {
-      alert('Erro ao criar pod. Tente novamente.');
+    showErrorMessage(msg) {
+      alert(msg ? `Erro ao criar ${this.kindLabel}: ${msg}` : `Erro ao criar ${this.kindLabel}. Tente novamente.`);
     }
   }
 }
@@ -253,6 +411,14 @@ export default {
 
 .form-input::placeholder {
   color: #718096;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.5rem;
+  color: #a0aec0;
+  font-size: 0.875rem;
+  font-style: italic;
 }
 
 .form-actions {
