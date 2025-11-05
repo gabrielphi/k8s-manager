@@ -10,15 +10,21 @@
         <div class="form-section">
           <h3>Configuração</h3>
 
-          <div class="form-group">
-            <label for="kind">Tipo de Recurso *</label>
-            <select id="kind" v-model="resourceType" class="form-input">
-              <option value="namespace">Namespace</option>
-              <option value="container">Container</option>
-              <option value="deployment">Deployment</option>
-              <option value="secret">Secret</option>
-              <option value="ingress">Ingress</option>
-            </select>
+          <!-- Navegação por abas para tipo de recurso -->
+          <div class="tabs-wrapper" role="tablist" aria-label="Tipo de recurso">
+            <button 
+              v-for="t in tabs" 
+              :key="t.value" 
+              class="tab-btn" 
+              :class="{ active: resourceType === t.value }"
+              role="tab"
+              :aria-selected="resourceType === t.value"
+              type="button"
+              @click="resourceType = t.value"
+            >
+              <span class="tab-emoji" aria-hidden="true">{{ t.icon }}</span>
+              <span class="tab-text">{{ t.label }}</span>
+            </button>
           </div>
 
           <div class="form-group">
@@ -171,6 +177,13 @@ export default {
       submitting: false,
       showConfirmation: false,
       resourceType: 'container',
+      tabs: [
+        { value: 'namespace', label: 'Namespace', icon: '📁' },
+        { value: 'container', label: 'Container', icon: '📦' },
+        { value: 'deployment', label: 'Deployment', icon: '🚀' },
+        { value: 'secret', label: 'Secret', icon: '🔑' },
+        { value: 'ingress', label: 'Ingress', icon: '🌐' }
+      ],
       form: {
         podName: '',
         namespace: 'default',
@@ -430,6 +443,52 @@ export default {
   color: #a0aec0;
   font-size: 0.875rem;
   font-style: italic;
+}
+
+.tabs-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: rgba(26, 32, 44, 0.6);
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid #4a5568;
+  margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #a0aec0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-btn:hover {
+  color: #e2e8f0;
+  border-color: #4a5568;
+  background: rgba(45, 55, 72, 0.6);
+}
+
+.tab-btn.active {
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.tab-emoji {
+  font-size: 1rem;
+}
+
+.tab-text {
+  font-size: 0.95rem;
 }
 
 .form-actions {
