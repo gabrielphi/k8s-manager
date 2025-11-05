@@ -40,14 +40,24 @@
 
           <div class="form-group" v-if="resourceType !== 'namespace'">
             <label for="namespace">Namespace *</label>
-            <input 
-              type="text" 
-              id="namespace" 
-              v-model="form.namespace" 
-              required
-              placeholder="Ex: default"
+            <select 
+              id="namespace"
+              v-model="form.namespace"
               class="form-input"
+              :disabled="loadingNamespaces"
+              required
             >
+              <option value="">
+                {{ loadingNamespaces ? 'Carregando namespaces...' : 'Selecione um namespace' }}
+              </option>
+              <option 
+                v-for="namespace in namespaces" 
+                :key="namespace" 
+                :value="namespace"
+              >
+                {{ namespace }}
+              </option>
+            </select>
           </div>
         </div>
 
@@ -185,9 +195,12 @@ export default {
       ],
       form: {
         podName: '',
-        namespace: 'default',
+        namespace: '',
         image: ''
       },
+      loadingNamespaces: false,
+      namespaces: [],
+      error: null,
       deployment: {
         image: '',
         replicas: 1,
@@ -216,7 +229,36 @@ export default {
       }
     }
   },
+  async mounted() {
+    await this.loadNamespaces();
+  },
   methods: {
+    async loadNamespaces() {
+      this.loadingNamespaces = true;
+      this.error = null;
+      try {
+        if (!config || !config.ENDPOINTS) {
+          throw new Error('Configuração não carregada corretamente');
+        }
+        const url = buildApiUrl(config.ENDPOINTS.NAMESPACES);
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
+        }
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          this.namespaces = data;
+        } else {
+          this.namespaces = [];
+        }
+      } catch (error) {
+        console.error('Erro ao carregar namespaces:', error);
+        this.error = `Erro ao carregar namespaces: ${error.message}`;
+        this.namespaces = [];
+      } finally {
+        this.loadingNamespaces = false;
+      }
+    },
     submitForm() {
       if (this.validateForm()) {
         this.showConfirmation = true;
@@ -322,7 +364,7 @@ export default {
       this.resourceType = 'container';
       this.form = {
         podName: '',
-        namespace: 'default',
+        namespace: '',
         image: ''
       };
       this.deployment = { image: '', replicas: 1, containerPort: null };
