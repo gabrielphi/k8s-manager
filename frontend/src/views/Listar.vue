@@ -69,60 +69,48 @@
           <span class="pods-count">{{ pods.length }} pod(s) encontrado(s)</span>
         </div>
         
-        <div class="pods-grid">
-          <div 
-            class="pod-card" 
-            v-for="(pod, index) in pods" 
-            :key="index"
-          >
-            <div class="pod-header">
-              <div class="pod-name">
-                <h4>{{ pod.nome }}</h4>
-                <span class="pod-namespace">{{ pod.namespace }}</span>
-              </div>
-              <div class="pod-status">
-                <span class="status-badge" :class="getStatusClass(pod.status)">
-                  {{ pod.status }}
-                </span>
-              </div>
-            </div>
-            
-            <div class="pod-content">
-              <div class="pod-info">
-                <div class="info-item" v-if="pod.ip">
-                  <span class="info-label">IP:</span>
-                  <span class="info-value">{{ pod.ip }}</span>
-                </div>
-                <div class="info-item" v-if="pod.node">
-                  <span class="info-label">Node:</span>
-                  <span class="info-value">{{ pod.node }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Namespace:</span>
-                  <span class="info-value">{{ pod.namespace }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Status:</span>
-                  <span class="info-value">{{ pod.status }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Imagem:</span>
-                  <span class="info-value">{{ pod.image }}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="pod-actions">
-              <button class="btn btn-sm btn-outline" @click="viewPodDetails(pod)">
-                <span class="btn-icon">👁️</span>
-                Detalhes
-              </button>
-              <button class="btn btn-sm btn-danger" @click="deletePod(pod)">
-                <span class="btn-icon">🗑️</span>
-                Deletar
-              </button>
-            </div>
-          </div>
+        <div class="pods-list">
+          <table class="pods-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Namespace</th>
+                <th>Status</th>
+                <th>IP</th>
+                <th>Node</th>
+                <th>Imagem</th>
+                <th class="actions-col">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(pod, index) in pods" :key="index" class="pod-row">
+                <td class="col-name">
+                  <div class="name-cell">
+                    <div class="name-main">{{ pod.nome }}</div>
+                  </div>
+                </td>
+                <td>{{ pod.namespace }}</td>
+                <td>
+                  <span class="status-badge" :class="getStatusClass(pod.status)">
+                    {{ pod.status }}
+                  </span>
+                </td>
+                <td>{{ pod.ip || '-' }}</td>
+                <td>{{ pod.node || '-' }}</td>
+                <td class="truncate">{{ pod.image }}</td>
+                <td class="actions">
+                  <button class="btn btn-sm btn-outline" @click="viewPodDetails(pod)">
+                    <span class="btn-icon">👁️</span>
+                    Detalhes
+                  </button>
+                  <button class="btn btn-sm btn-danger" @click="deletePod(pod)">
+                    <span class="btn-icon">🗑️</span>
+                    Deletar
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -715,5 +703,70 @@ export default {
 
 .btn-icon {
   font-size: 1rem;
+}
+
+.pods-list {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.pods-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #4a5568;
+  border: 1px solid #718096;
+  border-radius: 12px;
+}
+
+.pods-table thead th {
+  position: sticky;
+  top: 0;
+  background: #2d3748;
+  color: #e2e8f0;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  border-bottom: 1px solid #718096;
+}
+
+.pods-table tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #718096;
+  color: #e2e8f0;
+}
+
+.pods-table tbody tr:hover {
+  background: #3b475a;
+}
+
+.pod-row .status-badge {
+  display: inline-block;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actions-col {
+  width: 160px;
+}
+
+.truncate {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .actions-col {
+    width: 120px;
+  }
+  .truncate {
+    max-width: 160px;
+  }
 }
 </style>
