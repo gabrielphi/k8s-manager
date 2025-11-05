@@ -2,7 +2,7 @@
   <div class="criar-page">
     <div class="page-header">
       <h1>Criar Recurso</h1>
-      <p>Crie Container, Deployment, Secret ou Ingress no Kubernetes</p>
+      <p>Crie Namespace, Container, Deployment, Secret ou Ingress no Kubernetes</p>
     </div>
 
     <div class="content-card">
@@ -13,6 +13,7 @@
           <div class="form-group">
             <label for="kind">Tipo de Recurso *</label>
             <select id="kind" v-model="resourceType" class="form-input">
+              <option value="namespace">Namespace</option>
               <option value="container">Container</option>
               <option value="deployment">Deployment</option>
               <option value="secret">Secret</option>
@@ -32,7 +33,7 @@
             >
           </div>
 
-          <div class="form-group">
+          <div class="form-group" v-if="resourceType !== 'namespace'">
             <label for="namespace">Namespace *</label>
             <input 
               type="text" 
@@ -194,6 +195,7 @@ export default {
   computed: {
     kindLabel() {
       switch (this.resourceType) {
+        case 'namespace': return 'Namespace';
         case 'container': return 'Container';
         case 'deployment': return 'Deployment';
         case 'secret': return 'Secret';
@@ -243,6 +245,12 @@ export default {
     },
     
     buildPayload() {
+      if (this.resourceType === 'namespace') {
+        return {
+          kind: 'namespace',
+          name: this.form.podName
+        };
+      }
       const base = {
         kind: this.resourceType,
         namespace: this.form.namespace,
@@ -278,6 +286,9 @@ export default {
     },
     
     validateForm() {
+      if (this.resourceType === 'namespace') {
+        return !!this.form.podName;
+      }
       if (!this.form.podName || !this.form.namespace) return false;
       switch (this.resourceType) {
         case 'container':

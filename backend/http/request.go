@@ -103,76 +103,8 @@ func listNsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 
-type PodCreationRequest struct {
-	Name      string `json:"podName"`
-	Namespace string `json:"namespace"`
-	Image     string `json:"image"`
-}
-
-func createPodHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("createPodHandler chamado com método: %s", r.Method)
-
-	if r.Method != http.MethodPost {
-		log.Printf("Método não permitido: %s (esperado: POST)", r.Method)
-		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// 2. Declare uma variável do tipo da sua struct para ser o destino dos dados.
-	var podReq PodCreationRequest
-
-	// 3. Crie um decoder que lê diretamente do corpo da requisição.
-	//    Isso é mais eficiente do que ler o corpo inteiro para a memória primeiro.
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&podReq) // O '&' é crucial, passamos um ponteiro!
-
-	// 4. TRATAMENTO DE ERROS DETALHADO (MUITO IMPORTANTE!)
-	if err != nil {
-		// Se o corpo estiver vazio, o decoder retorna um erro EOF (End of File).
-		if err == io.EOF {
-			log.Printf("ERRO: Corpo da requisição vazio")
-			http.Error(w, "Corpo da requisição não pode ser vazio", http.StatusBadRequest)
-			return
-		}
-		// Se o JSON estiver mal formatado, retorna um erro de sintaxe.
-		// Damos uma resposta genérica para não expor detalhes internos.
-		log.Printf("ERRO ao decodificar JSON: %v", err)
-		http.Error(w, "JSON mal formatado", http.StatusBadRequest)
-		return
-	}
-
-	log.Printf("Dados recebidos: Name=%s, Namespace=%s, Image=%s", podReq.Name, podReq.Namespace, podReq.Image)
-
-	// 5. [Opcional mas recomendado] Valide os dados recebidos.
-	if podReq.Name == "" || podReq.Namespace == "" || podReq.Image == "" {
-		log.Printf("ERRO: Campos obrigatórios vazios - Name: %s, Namespace: %s, Image: %s", podReq.Name, podReq.Namespace, podReq.Image)
-		http.Error(w, "Campos 'podName', 'namespace', e 'image' são obrigatórios", http.StatusBadRequest)
-		return
-	}
-
-	log.Printf("Criando pod: %s no namespace: %s com imagem: %s", podReq.Name, podReq.Namespace, podReq.Image)
-
-	// Chama a função de criação do pod
-	err = k8s.CreatePod(podReq.Namespace, podReq.Image, podReq.Name)
-	if err != nil {
-		log.Printf("ERRO ao criar pod: %v", err)
-		http.Error(w, fmt.Sprintf("Erro ao criar pod: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	// 7. Envie uma resposta de sucesso para o cliente.
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated) // Status 201 Created é apropriado aqui.
-
-	// Você pode retornar uma mensagem de sucesso simples
-	response := map[string]string{"status": "sucesso", "message": fmt.Sprintf("Pod '%s' está sendo criado.", podReq.Name)}
-	json.NewEncoder(w).Encode(response)
-
-	log.Printf("Pod criado com sucesso: %s", podReq.Name)
-}
-
 type PodDeleteRequest struct {
-	Name      string `json:"podName"`
+	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
 }
 
@@ -272,12 +204,12 @@ func createResourceHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "JSON mal formatado", http.StatusBadRequest)
 		return
 	}
-
-	if req.Kind == "" || req.Namespace == "" || req.Name == "" {
-		http.Error(w, "Campos 'kind', 'namespace' e 'name' são obrigatórios", http.StatusBadRequest)
-		return
+	if req.Kind != "namespace" {
+		if req.Kind == "" || req.Namespace == "" || req.Name == "" {
+			http.Error(w, "Campos 'kind', 'namespace' e 'name' são obrigatórios", http.StatusBadRequest)
+			return
+		}
 	}
-
 	var err error
 	switch req.Kind {
 	case "container", "pod":
@@ -307,6 +239,8 @@ func createResourceHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		err = k8s.CreateIngress(req.Namespace, req.Name, req.Host, req.ServiceName, *req.ServicePort)
+	case "namespace":
+		err = k8s.CreateNs(req.Name)
 	default:
 		http.Error(w, "'kind' inválido. Use: container, deployment, secret, ingress", http.StatusBadRequest)
 		return
@@ -327,14 +261,12 @@ func createResourceHandler(w http.ResponseWriter, r *http.Request) {
 func Listen() {
 	// Aplica o middleware CORS ao handler
 	http.HandleFunc("GET /listAllPods/{namespace}", corsMiddleware(listPodsHandler))
-	http.HandleFunc("POST /createPod", corsMiddleware(createPodHandler))
 	http.HandleFunc("POST /createResource", corsMiddleware(createResourceHandler))
 	http.HandleFunc("GET /listAllNs", corsMiddleware(listNsHandler))
 	http.HandleFunc("POST /deletePod", corsMiddleware(deletePodHandler))
 
 	// Adiciona handler para requisições OPTIONS (preflight) para ambas as rotas
 	http.HandleFunc("OPTIONS /listAllPods/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
-	http.HandleFunc("OPTIONS /createPod", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /createResource", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /listAllNs", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /deletePod", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))

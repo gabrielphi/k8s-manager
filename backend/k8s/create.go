@@ -93,6 +93,17 @@ func CreateSecret(namespace, name, secretType string, data map[string]string) er
 	}
 	return nil
 }
+func CreateNs(name string) error {
+	ns := &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}
+	_, err := client.CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+	if err != nil {
+	}
+	return nil
+}
 
 func CreateIngress(namespace, name, host, serviceName string, servicePort int32) error {
 	pathType := netv1.PathTypePrefix
