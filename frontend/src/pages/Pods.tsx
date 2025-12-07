@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { k8sService, PodInfo, DeploymentInfo } from '../services/k8s'
+import { k8sService, PodInfo, DeploymentInfo, ServiceInfo } from '../services/k8s'
 
-type ViewType = 'pods' | 'deployments'
+type ViewType = 'pods' | 'deployments' | 'services'
 
 function Pods() {
   const [namespaces, setNamespaces] = useState<string[]>([])
@@ -9,6 +9,7 @@ function Pods() {
   const [viewType, setViewType] = useState<ViewType>('pods')
   const [pods, setPods] = useState<PodInfo[]>([])
   const [deployments, setDeployments] = useState<DeploymentInfo[]>([])
+  const [services, setServices] = useState<ServiceInfo[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState<string>('')
@@ -21,12 +22,15 @@ function Pods() {
     if (selectedNamespace) {
       if (viewType === 'pods') {
         loadPods(selectedNamespace)
-      } else {
+      } else if (viewType === 'deployments') {
         loadDeployments(selectedNamespace)
+      } else if (viewType === 'services') {
+        loadServices(selectedNamespace)
       }
     } else {
       setPods([])
       setDeployments([])
+      setServices([])
     }
   }, [selectedNamespace, viewType])
 
@@ -96,6 +100,27 @@ function Pods() {
     }
   }
 
+  const loadServices = async (namespace: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await k8sService.listServices(namespace)
+      // Verifica se data é válido antes de usar
+      if (Array.isArray(data)) {
+        setServices(data)
+      } else {
+        setServices([])
+        setError('Erro ao carregar services. Resposta inválida do servidor.')
+      }
+    } catch (err) {
+      setError('Erro ao carregar services. Verifique se o backend está rodando.')
+      console.error(err)
+      setServices([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'running':
@@ -148,6 +173,25 @@ function Pods() {
     }
   }
 
+  const handleDeleteService = async (name: string, namespace: string) => {
+    if (!confirm(`Tem certeza que deseja deletar o service "${name}" no namespace "${namespace}"?`)) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      setError(null)
+      await k8sService.deleteService(name, namespace)
+      // Recarrega a lista de services após deletar
+      await loadServices(namespace)
+    } catch (err: any) {
+      setError(err.message || 'Erro ao deletar service')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Filtra os pods baseado no termo de busca (nome ou imagem)
   const filteredPods = pods.filter((pod) => {
     if (!searchTerm) return true
@@ -168,12 +212,24 @@ function Pods() {
     )
   })
 
+  // Filtra os services baseado no termo de busca (nome ou tipo)
+  const filteredServices = services.filter((service) => {
+    if (!searchTerm) return true
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      service.nome.toLowerCase().includes(searchLower) ||
+      service.type.toLowerCase().includes(searchLower)
+    )
+  })
+
   const handleRefresh = async () => {
     if (selectedNamespace) {
       if (viewType === 'pods') {
         await loadPods(selectedNamespace)
-      } else {
+      } else if (viewType === 'deployments') {
         await loadDeployments(selectedNamespace)
+      } else if (viewType === 'services') {
+        await loadServices(selectedNamespace)
       }
     } else {
       await loadNamespaces()
@@ -185,7 +241,7 @@ function Pods() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Recursos Kubernetes</h1>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Listar Recursos</h1>
               <button
                 onClick={handleRefresh}
                 disabled={loading}
@@ -232,6 +288,16 @@ function Pods() {
             >
               Deployments
             </button>
+            <button
+              onClick={() => setViewType('services')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                viewType === 'services'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              Services
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -263,7 +329,7 @@ function Pods() {
                 htmlFor="search-input"
                 className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
               >
-                Buscar {viewType === 'pods' ? 'Pod' : 'Deployment'}
+                Buscar {viewType === 'pods' ? 'Pod' : viewType === 'deployments' ? 'Deployment' : 'Service'}
               </label>
               <div className="relative">
                 <input
@@ -322,6 +388,14 @@ function Pods() {
           </div>
         )}
 
+        {!loading && selectedNamespace && viewType === 'services' && services.length === 0 && !error && (
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-12 text-center">
+            <p className="text-slate-600 dark:text-slate-400 text-lg">
+              Nenhum service encontrado no namespace <strong>{selectedNamespace}</strong>
+            </p>
+          </div>
+        )}
+
         {!loading && viewType === 'pods' && pods.length > 0 && filteredPods.length === 0 && searchTerm && (
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-12 text-center">
             <p className="text-slate-600 dark:text-slate-400 text-lg">
@@ -334,6 +408,14 @@ function Pods() {
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-12 text-center">
             <p className="text-slate-600 dark:text-slate-400 text-lg">
               Nenhum deployment encontrado com o termo de busca <strong>"{searchTerm}"</strong>
+            </p>
+          </div>
+        )}
+
+        {!loading && viewType === 'services' && services.length > 0 && filteredServices.length === 0 && searchTerm && (
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-12 text-center">
+            <p className="text-slate-600 dark:text-slate-400 text-lg">
+              Nenhum service encontrado com o termo de busca <strong>"{searchTerm}"</strong>
             </p>
           </div>
         )}
