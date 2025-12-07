@@ -17,6 +17,15 @@ type PodInfo struct {
 	Node      string `json:"node"`
 	Image     string `json:"image"`
 }
+type DeploymentInfo struct {
+	Nome      string `json:"nome"`
+	Namespace string `json:"namespace"`
+	Status    string `json:"status"`
+	Image     string `json:"image"`
+	Replicas  int32 `json:"replicas"`
+	ContainerPort int32 `json:"containerPort"`
+	Selector map[string]string `json:"selector"`
+}
 
 // ListarPods agora retorna um slice de PodInfo e um erro.
 func ListPods(namespace string) ([]PodInfo, error) {
@@ -45,6 +54,56 @@ func ListPods(namespace string) ([]PodInfo, error) {
 	// Retorna o slice preenchido e nenhum erro
 	return podsInfo, nil
 }
+
+func ListDeployments(namespace string) ([]DeploymentInfo, error) {
+	deployments, err := client.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("erro ao listar deployments: %w", err)
+	}
+
+	var deploymentsInfo []DeploymentInfo
+
+	for _, deployment := range deployments.Items {
+		var containerPort int32 = 0
+		if len(deployment.Spec.Template.Spec.Containers) > 0 {
+			if len(deployment.Spec.Template.Spec.Containers[0].Ports) > 0 {
+				containerPort = deployment.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort
+			}
+		}
+
+		var image string
+		if len(deployment.Spec.Template.Spec.Containers) > 0 {
+			image = deployment.Spec.Template.Spec.Containers[0].Image
+		}
+
+		var replicas int32 = 0
+		if deployment.Spec.Replicas != nil {
+			replicas = *deployment.Spec.Replicas
+		}
+
+		status := "Unknown"
+		if deployment.Status.ReadyReplicas == replicas && replicas > 0 {
+			status = "Ready"
+		} else if deployment.Status.ReadyReplicas < replicas {
+			status = "NotReady"
+		}
+
+		info := DeploymentInfo{
+			Nome:          deployment.Name,
+			Namespace:     deployment.Namespace,
+			Status:        status,
+			Image:         image,
+			Replicas:      replicas,
+			ContainerPort: containerPort,
+			Selector:      deployment.Spec.Selector.MatchLabels,
+		}
+		deploymentsInfo = append(deploymentsInfo, info)
+	}
+	return deploymentsInfo, nil
+}
+
+
+
 func ListNamespaces() ([]string, error) {
 	log.Printf("🔍 ListNamespaces: Iniciando busca por namespaces")
 

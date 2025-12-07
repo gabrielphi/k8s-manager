@@ -18,6 +18,16 @@ export interface PodInfo {
   image: string
 }
 
+export interface DeploymentInfo {
+  nome: string
+  namespace: string
+  status: string
+  image: string
+  replicas: number
+  containerPort: number
+  selector: Record<string, string>
+}
+
 export interface CreateResourceRequest {
   kind: 'container' | 'pod' | 'deployment' | 'secret' | 'ingress' | 'namespace'
   namespace?: string
@@ -84,6 +94,16 @@ export const k8sService = {
       console.error('Erro ao deletar pod:', error)
       const errorMessage = error?.response?.data?.message || error?.message || 'Erro ao deletar pod'
       throw new Error(errorMessage)
+    }
+  },
+
+  async listDeployments(namespace: string): Promise<DeploymentInfo[]> {
+    try {
+      const response = await api.get<DeploymentInfo[]>(`/listAllDeployments/${namespace}`)
+      return Array.isArray(response.data) ? response.data : []
+    } catch (error) {
+      console.error('Erro ao listar deployments:', error)
+      return []
     }
   },
 }

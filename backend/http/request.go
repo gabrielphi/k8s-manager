@@ -71,6 +71,36 @@ func listPodsHandler(w http.ResponseWriter, r *http.Request) {
 	// 6. Envia a resposta
 	w.Write(jsonResponse)
 }
+
+func listDeploymentsHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("📋 listDeploymentsHandler chamado - método: %s", r.Method)
+
+	namespace := r.PathValue("namespace")
+	if namespace == "" {
+		http.Error(w, "O namespace não pode estar vazio", http.StatusBadRequest)
+		return
+	}
+
+	jsonAllDeployments, err := k8s.ListDeployments(namespace)
+	if err != nil {
+		log.Printf("❌ ERRO: Falha ao listar deployments: %v", err)
+		http.Error(w, "Erro ao buscar dados do Kubernetes", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("✅ Deployments encontrados: %v", jsonAllDeployments)
+
+	w.Header().Set("Content-Type", "application/json")
+	jsonResponse, err := json.Marshal(jsonAllDeployments)
+	if err != nil {
+		log.Printf("❌ ERRO: Falha ao serializar JSON: %v", err)
+		http.Error(w, "Erro ao formatar resposta", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(jsonResponse)
+}
+
 func listNsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("📋 listNsHandler chamado - método: %s", r.Method)
 
@@ -261,12 +291,14 @@ func createResourceHandler(w http.ResponseWriter, r *http.Request) {
 func Listen() {
 	// Aplica o middleware CORS ao handler
 	http.HandleFunc("GET /listAllPods/{namespace}", corsMiddleware(listPodsHandler))
+	http.HandleFunc("GET /listAllDeployments/{namespace}", corsMiddleware(listDeploymentsHandler))
 	http.HandleFunc("POST /createResource", corsMiddleware(createResourceHandler))
 	http.HandleFunc("GET /listAllNs", corsMiddleware(listNsHandler))
 	http.HandleFunc("POST /deletePod", corsMiddleware(deletePodHandler))
 
 	// Adiciona handler para requisições OPTIONS (preflight) para ambas as rotas
 	http.HandleFunc("OPTIONS /listAllPods/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
+	http.HandleFunc("OPTIONS /listAllDeployments/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /createResource", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /listAllNs", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /deletePod", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
