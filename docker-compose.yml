@@ -14,6 +14,14 @@ services:
       # Linux/Mac: ~/.kube/config:/root/.kube/config:ro
       # Windows: C:/Users/SEU_USUARIO/.kube/config:/root/.kube/config:ro
       - ~/.kube/config:/root/.kube/config:ro
+      # Mount minikube certificates directory
+      # IMPORTANTE: O caminho no container deve corresponder ao caminho absoluto usado no kubeconfig
+      # Se o erro mostrar /home/USUARIO/.minikube, use esse mesmo caminho no container
+      # Linux/Mac: ~/.minikube:/home/gabriel/.minikube:ro
+      # Windows (WSL): ~/.minikube:/home/gabriel/.minikube:ro ou /home/gabriel/.minikube:/home/gabriel/.minikube:ro
+      # Windows (PowerShell): C:/Users/SEU_USUARIO/.minikube:/home/gabriel/.minikube:ro
+      # Substitua "gabriel" pelo seu nome de usuário se diferente
+      - ~/.minikube:/home/gabriel/.minikube:ro
     environment:
       - KUBECONFIG=/root/.kube/config
     restart: unless-stopped
