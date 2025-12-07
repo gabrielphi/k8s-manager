@@ -7,6 +7,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func CreatePod(namespace string, image string, name string) error {
@@ -67,6 +68,30 @@ func CreateDeployment(namespace, name, image string, replicas int32, containerPo
 		},
 	}
 	_, err := client.AppsV1().Deployments(namespace).Create(context.Background(), dep, metav1.CreateOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func CreateService(namespace, name, serviceType string, port int32, targetPort int) error {
+	svc := &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: v1.ServiceSpec{
+			Selector: map[string]string{"app": name},
+			Type:     v1.ServiceType(serviceType),
+			Ports: []v1.ServicePort{
+				{
+					Port:       port,
+					TargetPort: intstr.FromInt(targetPort),
+				},
+			},
+		},
+	}
+	_, err := client.CoreV1().Services(namespace).Create(context.Background(), svc, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}

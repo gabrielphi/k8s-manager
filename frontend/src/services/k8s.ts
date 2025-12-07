@@ -29,7 +29,7 @@ export interface DeploymentInfo {
 }
 
 export interface CreateResourceRequest {
-  kind: 'container' | 'pod' | 'deployment' | 'secret' | 'ingress' | 'namespace'
+  kind: 'container' | 'pod' | 'deployment' | 'secret' | 'ingress' | 'namespace' | 'service'
   namespace?: string
   name: string
   image?: string
@@ -40,6 +40,9 @@ export interface CreateResourceRequest {
   host?: string
   serviceName?: string
   servicePort?: number
+  serviceType?: string
+  port?: number
+  targetPort?: number
 }
 
 export interface CreateResourceResponse {

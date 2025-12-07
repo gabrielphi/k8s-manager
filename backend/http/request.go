@@ -211,7 +211,9 @@ type CreateResourceRequest struct {
 	Data          map[string]string `json:"data,omitempty"`
 	Host          string            `json:"host,omitempty"`
 	ServiceName   string            `json:"serviceName,omitempty"`
-	ServicePort   *int32            `json:"servicePort,omitempty"`
+	TargetPort    *int              `json:"targetPort,omitempty"`
+	ServiceType   string            `json:"serviceType,omitempty"`
+	Port          *int32            `json:"port,omitempty"`
 }
 
 func createResourceHandler(w http.ResponseWriter, r *http.Request) {
@@ -264,15 +266,21 @@ func createResourceHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err = k8s.CreateSecret(req.Namespace, req.Name, req.SecretType, req.Data)
 	case "ingress":
-		if req.Host == "" || req.ServiceName == "" || req.ServicePort == nil {
+		if req.Host == "" || req.ServiceName == "" || req.Port == nil {
 			http.Error(w, "Campos 'host', 'serviceName' e 'servicePort' são obrigatórios para ingress", http.StatusBadRequest)
 			return
 		}
-		err = k8s.CreateIngress(req.Namespace, req.Name, req.Host, req.ServiceName, *req.ServicePort)
+		err = k8s.CreateIngress(req.Namespace, req.Name, req.Host, req.ServiceName, *req.Port)
 	case "namespace":
 		err = k8s.CreateNs(req.Name)
+	case "service":
+		if req.ServiceType == "" || req.Port == nil || req.TargetPort == nil {
+			http.Error(w, "Campos 'serviceType', 'port' e 'targetPort' são obrigatórios para service", http.StatusBadRequest)
+			return
+		}
+		err = k8s.CreateService(req.Namespace, req.Name, req.ServiceType, *req.Port, *req.TargetPort)
 	default:
-		http.Error(w, "'kind' inválido. Use: container, deployment, secret, ingress", http.StatusBadRequest)
+		http.Error(w, "'kind' inválido. Use: container, deployment, secret, ingress, service, namespace", http.StatusBadRequest)
 		return
 	}
 

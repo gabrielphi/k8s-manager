@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { k8sService, CreateResourceRequest } from '../services/k8s'
 
-type ResourceType = 'pod' | 'deployment' | 'secret' | 'ingress' | 'namespace'
+type ResourceType = 'pod' | 'deployment' | 'secret' | 'ingress' | 'namespace' | 'service'
 
 interface SecretData {
   key: string
@@ -28,6 +28,9 @@ function Create() {
   const [host, setHost] = useState('')
   const [serviceName, setServiceName] = useState('')
   const [servicePort, setServicePort] = useState<number>(80)
+  const [serviceType, setServiceType] = useState('ClusterIP')
+  const [port, setPort] = useState<number>(80)
+  const [targetPort, setTargetPort] = useState<number>(8080)
 
   useEffect(() => {
     loadNamespaces()
@@ -47,6 +50,9 @@ function Create() {
     setHost('')
     setServiceName('')
     setServicePort(80)
+    setServiceType('ClusterIP')
+    setPort(80)
+    setTargetPort(8080)
   }, [resourceType])
 
   const loadNamespaces = async () => {
@@ -139,6 +145,21 @@ function Create() {
       }
     }
 
+    if (resourceType === 'service') {
+      if (!serviceType.trim()) {
+        setError('Tipo de Service é obrigatório')
+        return false
+      }
+      if (port < 1 || port > 65535) {
+        setError('Porta do Service deve estar entre 1 e 65535')
+        return false
+      }
+      if (targetPort < 1 || targetPort > 65535) {
+        setError('Porta de destino (Target Port) deve estar entre 1 e 65535')
+        return false
+      }
+    }
+
     return true
   }
 
@@ -191,6 +212,12 @@ function Create() {
         request.servicePort = servicePort
       }
 
+      if (resourceType === 'service') {
+        request.serviceType = serviceType.trim()
+        request.port = port
+        request.targetPort = targetPort
+      }
+
       const response = await k8sService.createResource(request)
       setSuccess(response.message || `Recurso ${resourceType} criado com sucesso!`)
       
@@ -204,6 +231,9 @@ function Create() {
         setHost('')
         setServiceName('')
         setServicePort(80)
+        setServiceType('ClusterIP')
+        setPort(80)
+        setTargetPort(8080)
       }, 2000)
     } catch (err: any) {
       setError(err.message || 'Erro ao criar recurso. Verifique os dados e tente novamente.')
@@ -233,7 +263,7 @@ function Create() {
             Tipo de Recurso
           </label>
           <div className="flex flex-wrap gap-2">
-            {(['pod', 'deployment', 'secret', 'ingress', 'namespace'] as ResourceType[]).map((type) => (
+            {(['pod', 'deployment', 'secret', 'ingress', 'namespace', 'service'] as ResourceType[]).map((type) => (
               <button
                 key={type}
                 type="button"
@@ -468,6 +498,75 @@ function Create() {
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   required
                 />
+              </div>
+            </>
+          )}
+
+          {resourceType === 'service' && (
+            <>
+              <div className="mb-4">
+                <label
+                  htmlFor="serviceType"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  Tipo de Service *
+                </label>
+                <select
+                  id="serviceType"
+                  value={serviceType}
+                  onChange={(e) => setServiceType(e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  required
+                >
+                  <option value="ClusterIP">ClusterIP</option>
+                  <option value="NodePort">NodePort</option>
+                  <option value="LoadBalancer">LoadBalancer</option>
+                  <option value="ExternalName">ExternalName</option>
+                </select>
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="port"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  Porta do Service *
+                </label>
+                <input
+                  type="number"
+                  id="port"
+                  value={port}
+                  onChange={(e) => setPort(parseInt(e.target.value) || 80)}
+                  min="1"
+                  max="65535"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="80"
+                  required
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Porta exposta pelo Service
+                </p>
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="targetPort"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  Porta de Destino (Target Port) *
+                </label>
+                <input
+                  type="number"
+                  id="targetPort"
+                  value={targetPort}
+                  onChange={(e) => setTargetPort(parseInt(e.target.value) || 8080)}
+                  min="1"
+                  max="65535"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="8080"
+                  required
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Porta do container/pod que o Service irá encaminhar o tráfego
+                </p>
               </div>
             </>
           )}
