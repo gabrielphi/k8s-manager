@@ -2,14 +2,13 @@ import { Link } from 'react-router-dom'
 
 function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="container mx-auto px-4 py-16">
+    <div className="container mx-auto px-4 py-16 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <header className="text-center mb-16">
-            <h1 className="text-5xl font-bold text-slate-900 mb-4">
+            <h1 className="text-5xl font-bold text-slate-900 dark:text-white mb-4">
               Kubernetes Manager
             </h1>
-            <p className="text-xl text-slate-600">
+            <p className="text-xl text-slate-600 dark:text-slate-400">
               Gerencie seu cluster Kubernetes de forma simplificada
             </p>
           </header>
@@ -17,11 +16,11 @@ function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link
               to="/pods"
-              className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200 hover:border-blue-500"
+              className="group bg-white dark:bg-slate-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400"
             >
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4 group-hover:bg-blue-500 transition-colors">
+              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg mb-4 group-hover:bg-blue-500 transition-colors">
                 <svg
-                  className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors"
+                  className="w-6 h-6 text-blue-600 dark:text-blue-300 group-hover:text-white transition-colors"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -34,21 +33,21 @@ function Home() {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
                 Pods
               </h2>
-              <p className="text-slate-600">
+              <p className="text-slate-600 dark:text-slate-400">
                 Visualize e gerencie os pods do seu cluster
               </p>
             </Link>
 
             <Link
               to="/create"
-              className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200 hover:border-green-500"
+              className="group bg-white dark:bg-slate-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-400"
             >
-              <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-4 group-hover:bg-green-500 transition-colors">
+              <div className="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg mb-4 group-hover:bg-green-500 transition-colors">
                 <svg
-                  className="w-6 h-6 text-green-600 group-hover:text-white transition-colors"
+                  className="w-6 h-6 text-green-600 dark:text-green-300 group-hover:text-white transition-colors"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -61,18 +60,18 @@ function Home() {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
                 Criar Recursos
               </h2>
-              <p className="text-slate-600">
+              <p className="text-slate-600 dark:text-slate-400">
                 Crie pods, deployments, secrets, ingress e namespaces
               </p>
             </Link>
 
-            <div className="bg-white rounded-lg shadow-md p-6 border border-slate-200 opacity-50">
-              <div className="flex items-center justify-center w-12 h-12 bg-slate-100 rounded-lg mb-4">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 border border-slate-200 dark:border-slate-700 opacity-50">
+              <div className="flex items-center justify-center w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-lg mb-4">
                 <svg
-                  className="w-6 h-6 text-slate-400"
+                  className="w-6 h-6 text-slate-400 dark:text-slate-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -85,16 +84,16 @@ function Home() {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
                 Deployments
               </h2>
-              <p className="text-slate-600">Em breve</p>
+              <p className="text-slate-600 dark:text-slate-400">Em breve</p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6 border border-slate-200 opacity-50">
-              <div className="flex items-center justify-center w-12 h-12 bg-slate-100 rounded-lg mb-4">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 border border-slate-200 dark:border-slate-700 opacity-50">
+              <div className="flex items-center justify-center w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-lg mb-4">
                 <svg
-                  className="w-6 h-6 text-slate-400"
+                  className="w-6 h-6 text-slate-400 dark:text-slate-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -107,10 +106,10 @@ function Home() {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
                 Secrets
               </h2>
-              <p className="text-slate-600">Em breve</p>
+              <p className="text-slate-600 dark:text-slate-400">Em breve</p>
             </div>
           </div>
         </div>
