@@ -7,6 +7,7 @@ import (
 	"log"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type PodInfo struct {
@@ -120,16 +121,40 @@ func ListServices(namespace string) ([]ServiceInfo, error) {
 	}
 	var servicesInfo []ServiceInfo
 	for _, service := range services.Items {
+		var port int32 = 0
+		var targetPort int32 = 0
+		if len(service.Spec.Ports) > 0 {
+			port = service.Spec.Ports[0].Port
+			// Verifica se TargetPort é IntVal ou StringVal
+			if service.Spec.Ports[0].TargetPort.Type == intstr.Int {
+				targetPort = service.Spec.Ports[0].TargetPort.IntVal
+			}
+		}
+
+		var externalIP string
+		if len(service.Spec.ExternalIPs) > 0 {
+			externalIP = service.Spec.ExternalIPs[0]
+		}
+
+		var loadBalancerIP string
+		if len(service.Status.LoadBalancer.Ingress) > 0 {
+			loadBalancerIP = service.Status.LoadBalancer.Ingress[0].IP
+		}
+		// Se não tiver IP no Ingress, tenta pegar do spec (deprecated mas ainda pode existir)
+		if loadBalancerIP == "" {
+			loadBalancerIP = service.Spec.LoadBalancerIP
+		}
+
 		info := ServiceInfo{
 			Nome:           service.Name,
-			Port:           service.Spec.Ports[0].Port,
-			TargetPort:     service.Spec.Ports[0].TargetPort.IntVal,
+			Port:           port,
+			TargetPort:     targetPort,
 			Selector:       service.Spec.Selector,
 			Type:           string(service.Spec.Type),
 			Namespace:      service.Namespace,
 			ClusterIP:      service.Spec.ClusterIP,
-			ExternalIP:     service.Spec.ExternalIPs[0],
-			LoadBalancerIP: service.Spec.LoadBalancerIP,
+			ExternalIP:     externalIP,
+			LoadBalancerIP: loadBalancerIP,
 		}
 		servicesInfo = append(servicesInfo, info)
 	}
