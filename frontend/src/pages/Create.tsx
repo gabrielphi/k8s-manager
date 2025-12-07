@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { k8sService, CreateResourceRequest } from '../services/k8s'
 
 type ResourceType = 'pod' | 'deployment' | 'secret' | 'ingress' | 'namespace' | 'service'
@@ -243,23 +243,17 @@ function Create() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <Link
-            to="/"
-            className="text-blue-600 hover:text-blue-800 font-medium mb-2 inline-block"
-          >
-            ← Voltar para Home
-          </Link>
-          <h1 className="text-3xl font-bold text-slate-900">Criar Recurso</h1>
-          <p className="text-slate-600 mt-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Criar Recurso</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-2">
             Crie novos recursos no seu cluster Kubernetes
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 mb-6">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Tipo de Recurso
           </label>
           <div className="flex flex-wrap gap-2">
@@ -271,7 +265,7 @@ function Create() {
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   resourceType === type
                     ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
                 }`}
               >
                 {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -280,12 +274,12 @@ function Create() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
           {resourceType !== 'namespace' && (
             <div className="mb-4">
               <label
                 htmlFor="namespace"
-                className="block text-sm font-medium text-slate-700 mb-2"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
               >
                 Namespace *
               </label>
@@ -293,7 +287,7 @@ function Create() {
                 id="namespace"
                 value={namespace}
                 onChange={(e) => setNamespace(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                 required
               >
                 <option value="">Selecione um namespace</option>
@@ -309,7 +303,7 @@ function Create() {
           <div className="mb-4">
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-slate-700 mb-2"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
             >
               Nome *
             </label>
@@ -318,7 +312,7 @@ function Create() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
               placeholder="nome-do-recurso"
               required
             />
@@ -327,21 +321,21 @@ function Create() {
           {(resourceType === 'pod' || resourceType === 'deployment') && (
             <>
               <div className="mb-4">
-                <label
-                  htmlFor="image"
-                  className="block text-sm font-medium text-slate-700 mb-2"
-                >
-                  Imagem Docker *
-                </label>
-                <input
-                  type="text"
-                  id="image"
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  placeholder="nginx:latest"
-                  required
-                />
+              <label
+                htmlFor="image"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              >
+                Imagem Docker *
+              </label>
+              <input
+                type="text"
+                id="image"
+                value={image}
+                onChange={(e) => setImage(e.target.value)}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                placeholder="nginx:latest"
+                required
+              />
               </div>
             </>
           )}
@@ -351,7 +345,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="replicas"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Réplicas *
                 </label>
@@ -361,14 +355,14 @@ function Create() {
                   value={replicas}
                   onChange={(e) => setReplicas(parseInt(e.target.value) || 1)}
                   min="1"
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                   required
                 />
               </div>
               <div className="mb-4">
                 <label
                   htmlFor="containerPort"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Porta do Container (opcional)
                 </label>
@@ -379,7 +373,7 @@ function Create() {
                   onChange={(e) => setContainerPort(parseInt(e.target.value) || 0)}
                   min="0"
                   max="65535"
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
             </>
@@ -390,7 +384,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="secretType"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Tipo de Secret
                 </label>
@@ -399,7 +393,7 @@ function Create() {
                   id="secretType"
                   value={secretType}
                   onChange={(e) => setSecretType(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                   placeholder="Opaque"
                 />
               </div>
@@ -450,7 +444,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="host"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Host *
                 </label>
@@ -459,7 +453,7 @@ function Create() {
                   id="host"
                   value={host}
                   onChange={(e) => setHost(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                   placeholder="example.com"
                   required
                 />
@@ -467,7 +461,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="serviceName"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Nome do Service *
                 </label>
@@ -476,7 +470,7 @@ function Create() {
                   id="serviceName"
                   value={serviceName}
                   onChange={(e) => setServiceName(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                   placeholder="meu-service"
                   required
                 />
@@ -484,7 +478,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="servicePort"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Porta do Service *
                 </label>
@@ -495,7 +489,7 @@ function Create() {
                   onChange={(e) => setServicePort(parseInt(e.target.value) || 80)}
                   min="1"
                   max="65535"
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                   required
                 />
               </div>
@@ -507,7 +501,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="serviceType"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Tipo de Service *
                 </label>
@@ -515,7 +509,7 @@ function Create() {
                   id="serviceType"
                   value={serviceType}
                   onChange={(e) => setServiceType(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                   required
                 >
                   <option value="ClusterIP">ClusterIP</option>
@@ -527,7 +521,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="port"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Porta do Service *
                 </label>
@@ -538,18 +532,18 @@ function Create() {
                   onChange={(e) => setPort(parseInt(e.target.value) || 80)}
                   min="1"
                   max="65535"
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                   placeholder="80"
                   required
                 />
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Porta exposta pelo Service
                 </p>
               </div>
               <div className="mb-4">
                 <label
                   htmlFor="targetPort"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Porta de Destino (Target Port) *
                 </label>
@@ -560,11 +554,11 @@ function Create() {
                   onChange={(e) => setTargetPort(parseInt(e.target.value) || 8080)}
                   min="1"
                   max="65535"
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                   placeholder="8080"
                   required
                 />
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Porta do container/pod que o Service irá encaminhar o tráfego
                 </p>
               </div>
@@ -572,13 +566,13 @@ function Create() {
           )}
 
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+            <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+            <div className="mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 px-4 py-3 rounded-lg">
               {success}
             </div>
           )}
@@ -587,7 +581,7 @@ function Create() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+              className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <span className="flex items-center justify-center">
@@ -601,7 +595,7 @@ function Create() {
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+              className="px-6 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               Cancelar
             </button>
