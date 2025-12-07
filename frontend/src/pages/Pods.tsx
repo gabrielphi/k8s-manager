@@ -8,6 +8,7 @@ function Pods() {
   const [pods, setPods] = useState<PodInfo[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState<string>('')
 
   useEffect(() => {
     loadNamespaces()
@@ -80,6 +81,35 @@ function Pods() {
     }
   }
 
+  const handleDeletePod = async (name: string, namespace: string) => {
+    if (!confirm(`Tem certeza que deseja deletar o pod "${name}" no namespace "${namespace}"?`)) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      setError(null)
+      await k8sService.deletePod(name, namespace)
+      // Recarrega a lista de pods após deletar
+      await loadPods(namespace)
+    } catch (err: any) {
+      setError(err.message || 'Erro ao deletar pod')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Filtra os pods baseado no termo de busca (nome ou imagem)
+  const filteredPods = pods.filter((pod) => {
+    if (!searchTerm) return true
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      pod.nome.toLowerCase().includes(searchLower) ||
+      pod.image.toLowerCase().includes(searchLower)
+    )
+  })
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto px-4 py-8">
@@ -95,27 +125,62 @@ function Pods() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <label
-            htmlFor="namespace-select"
-            className="block text-sm font-medium text-slate-700 mb-2"
-          >
-            Namespace
-          </label>
-          <select
-            id="namespace-select"
-            value={selectedNamespace}
-            onChange={(e) => setSelectedNamespace(e.target.value)}
-            className="w-full md:w-64 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            disabled={loading}
-          >
-            <option value="">Selecione um namespace</option>
-            {namespaces.map((ns) => (
-              <option key={ns} value={ns}>
-                {ns}
-              </option>
-            ))}
-          </select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <label
+              htmlFor="namespace-select"
+              className="block text-sm font-medium text-slate-700 mb-2"
+            >
+              Namespace
+            </label>
+            <select
+              id="namespace-select"
+              value={selectedNamespace}
+              onChange={(e) => setSelectedNamespace(e.target.value)}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              disabled={loading}
+            >
+              <option value="">Selecione um namespace</option>
+              {namespaces.map((ns) => (
+                <option key={ns} value={ns}>
+                  {ns}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <label
+              htmlFor="search-input"
+              className="block text-sm font-medium text-slate-700 mb-2"
+            >
+              Buscar Pod
+            </label>
+            <div className="relative">
+              <input
+                id="search-input"
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por nome ou imagem..."
+                className="w-full px-4 py-2 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                disabled={loading}
+              />
+              <svg
+                className="absolute left-3 top-2.5 h-5 w-5 text-slate-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {error && (
@@ -139,7 +204,15 @@ function Pods() {
           </div>
         )}
 
-        {!loading && pods.length > 0 && (
+        {!loading && pods.length > 0 && filteredPods.length === 0 && searchTerm && (
+          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <p className="text-slate-600 text-lg">
+              Nenhum pod encontrado com o termo de busca <strong>"{searchTerm}"</strong>
+            </p>
+          </div>
+        )}
+
+        {!loading && filteredPods.length > 0 && (
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
@@ -163,10 +236,13 @@ function Pods() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Image
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Ações
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
-                  {pods.map((pod) => (
+                  {filteredPods.map((pod) => (
                     <tr key={`${pod.namespace}-${pod.nome}`} className="hover:bg-slate-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-slate-900">
@@ -197,6 +273,15 @@ function Pods() {
                         <div className="text-sm text-slate-500 font-mono truncate max-w-xs">
                           {pod.image}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleDeletePod(pod.nome, pod.namespace)}
+                          disabled={loading}
+                          className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Deletar
+                        </button>
                       </td>
                     </tr>
                   ))}

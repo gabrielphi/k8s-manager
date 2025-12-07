@@ -72,4 +72,18 @@ export const k8sService = {
       throw new Error(errorMessage)
     }
   },
+
+  async deletePod(name: string, namespace: string): Promise<CreateResourceResponse> {
+    try {
+      const response = await api.post<CreateResourceResponse>('/deletePod', {
+        name,
+        namespace,
+      })
+      return response.data
+    } catch (error: any) {
+      console.error('Erro ao deletar pod:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Erro ao deletar pod'
+      throw new Error(errorMessage)
+    }
+  },
 }
