@@ -10,12 +10,12 @@ RUN apk add --no-cache git
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copiar código fonte (incluindo .air.toml)
+# Copiar código fonte
 COPY . .
 
 # Expor porta
 EXPOSE 7000
 
-# Usar Air para hot reload com configuração do .air.toml
-# Se o Air não funcionar, pode usar: CMD ["go", "run", "main.go"]
-CMD ["air", "-c", ".air.toml"]
+# Executar aplicação em modo desenvolvimento
+# O hot reload será gerenciado pelo volume montado no docker-compose
+CMD ["go", "run", "main.go"]

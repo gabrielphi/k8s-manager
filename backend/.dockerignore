@@ -5,5 +5,3 @@
 .vscode
 .idea
 *.log
-# Manter .air.toml para desenvolvimento
-# tmp/

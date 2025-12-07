@@ -50,10 +50,10 @@ docker-compose -f docker-compose.dev.yml up --build backend
 O Vite já possui hot reload nativo. Qualquer mudança nos arquivos `.tsx`, `.ts`, `.css` será refletida automaticamente.
 
 #### Backend
-O backend usa [Air](https://github.com/cosmtrek/air) para hot reload. O arquivo `.air.toml` está configurado para:
-- Recompilar automaticamente quando arquivos `.go` mudarem
-- Reiniciar o servidor automaticamente
-- Excluir arquivos de teste e diretórios desnecessários
+O backend usa `go run` para execução em desenvolvimento. Para hot reload automático, você pode:
+- Reiniciar manualmente o container quando necessário
+- Usar ferramentas externas como `nodemon` ou `air` se desejar hot reload automático
+- O código fonte está montado como volume, então mudanças são refletidas após reiniciar
 
 ## 🏭 Produção
 
@@ -169,9 +169,10 @@ docker-compose -f docker-compose.dev.yml exec backend sh
 3. Verifique os logs: `docker-compose -f docker-compose.dev.yml logs frontend`
 
 ### Hot reload não funciona no backend
-1. Verifique se o Air está instalado (já incluído no Dockerfile.dev)
-2. Verifique o arquivo `.air.toml`
+1. O backend usa `go run` e requer reinicialização manual do container
+2. Para reiniciar: `docker-compose -f docker-compose.dev.yml restart backend`
 3. Verifique os logs: `docker-compose -f docker-compose.dev.yml logs backend`
+4. Se precisar de hot reload automático, considere usar ferramentas como `air` ou `nodemon` externamente
 
 ### Erro de conexão com Kubernetes
 1. Verifique se o kubeconfig está montado corretamente
@@ -193,5 +194,5 @@ ports:
 
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 - [Vite Documentation](https://vitejs.dev/)
-- [Air (Hot Reload para Go)](https://github.com/cosmtrek/air)
 - [Nginx Documentation](https://nginx.org/en/docs/)
+- [Go Documentation](https://go.dev/doc/)

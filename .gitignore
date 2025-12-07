@@ -1,5 +1,1 @@
 .idea
-
-# Air (hot reload para Go)
-backend/tmp/
-backend/build-errors.log
