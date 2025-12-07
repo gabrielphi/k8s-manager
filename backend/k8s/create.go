@@ -35,7 +35,7 @@ func CreatePod(namespace string, image string, name string) error {
 	return nil
 }
 
-func CreateDeployment(namespace, name, image string, replicas int32, containerPort int32) error {
+func CreateDeployment(namespace, name, image string, replicas int32, containerPort int32, env map[string]string) error {
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -60,6 +60,16 @@ func CreateDeployment(namespace, name, image string, replicas int32, containerPo
 									return []v1.ContainerPort{{ContainerPort: containerPort}}
 								}
 								return nil
+							}(),
+							Env: func() []v1.EnvVar {
+								var vars []v1.EnvVar
+								for k, v := range env {
+									vars = append(vars, v1.EnvVar{
+										Name:  k,
+										Value: v,
+									})
+								}
+								return vars
 							}(),
 						},
 					},
@@ -169,9 +179,9 @@ func CreateIngress(namespace, name, host, serviceName string, servicePort int32)
 }
 
 // CreateApplication cria um Deployment e um Service juntos
-func CreateApplication(namespace, name, image string, replicas int32, containerPort int32, serviceType string, servicePort int32, targetPort int) error {
+func CreateApplication(namespace, name, image string, replicas int32, containerPort int32, serviceType string, servicePort int32, targetPort int, env map[string]string) error {
 	// Primeiro cria o Deployment
-	err := CreateDeployment(namespace, name, image, replicas, containerPort)
+	err := CreateDeployment(namespace, name, image, replicas, containerPort, env)
 	if err != nil {
 		return err
 	}

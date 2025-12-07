@@ -214,6 +214,7 @@ type CreateResourceRequest struct {
 	TargetPort    *int              `json:"targetPort,omitempty"`
 	ServiceType   string            `json:"serviceType,omitempty"`
 	Port          *int32            `json:"port,omitempty"`
+	Env           map[string]string `json:"env,omitempty"`
 }
 
 // CreateApplicationRequest define o payload para criar uma aplicação (deployment + service)
