@@ -283,7 +283,7 @@ export default {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              nome: pod.nome,
+              name: pod.nome,
               namespace: pod.namespace
             })
           });
