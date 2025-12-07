@@ -602,6 +602,15 @@ function Pods() {
                       Target Port
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Cluster IP
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      External IP
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Load Balancer IP
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Ações
                     </th>
                   </tr>
@@ -630,6 +639,21 @@ function Pods() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-slate-500 dark:text-slate-400 font-mono">
                           {service.targetPort || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono">
+                          {service.clusterIP || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono">
+                          {service.externalIP || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono">
+                          {service.loadBalancerIP || '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

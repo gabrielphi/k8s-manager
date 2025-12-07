@@ -27,12 +27,15 @@ type DeploymentInfo struct {
 	Selector      map[string]string `json:"selector"`
 }
 type ServiceInfo struct {
-	Nome       string            `json:"nome"`
-	Port       int32             `json:"port"`
-	TargetPort int32             `json:"targetPort"`
-	Selector   map[string]string `json:"selector"`
-	Type       string            `json:"type"`
-	Namespace  string            `json:"namespace"`
+	Nome           string            `json:"nome"`
+	Port           int32             `json:"port"`
+	TargetPort     int32             `json:"targetPort"`
+	Selector       map[string]string `json:"selector"`
+	Type           string            `json:"type"`
+	Namespace      string            `json:"namespace"`
+	ClusterIP      string            `json:"clusterIP"`
+	ExternalIP     string            `json:"externalIP"`
+	LoadBalancerIP string            `json:"loadBalancerIP"`
 }
 
 // ListarPods agora retorna um slice de PodInfo e um erro.
@@ -118,12 +121,15 @@ func ListServices(namespace string) ([]ServiceInfo, error) {
 	var servicesInfo []ServiceInfo
 	for _, service := range services.Items {
 		info := ServiceInfo{
-			Nome:       service.Name,
-			Port:       service.Spec.Ports[0].Port,
-			TargetPort: service.Spec.Ports[0].TargetPort.IntVal,
-			Selector:   service.Spec.Selector,
-			Type:       string(service.Spec.Type),
-			Namespace:  service.Namespace,
+			Nome:           service.Name,
+			Port:           service.Spec.Ports[0].Port,
+			TargetPort:     service.Spec.Ports[0].TargetPort.IntVal,
+			Selector:       service.Spec.Selector,
+			Type:           string(service.Spec.Type),
+			Namespace:      service.Namespace,
+			ClusterIP:      service.Spec.ClusterIP,
+			ExternalIP:     service.Spec.ExternalIPs[0],
+			LoadBalancerIP: service.Spec.LoadBalancerIP,
 		}
 		servicesInfo = append(servicesInfo, info)
 	}

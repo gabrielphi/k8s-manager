@@ -38,6 +38,9 @@ export interface ServiceInfo {
   targetPort: number
   type: string
   selector: Record<string, string>
+  clusterIP: string
+  externalIP: string
+  loadBalancerIP: string
 }
 
 export interface CreateResourceRequest {
