@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { k8sService, CreateApplicationRequest } from '../services/k8s'
 
+interface EnvData {
+  key: string
+  value: string
+}
+
 function CreateApplication() {
   const navigate = useNavigate()
   const [namespaces, setNamespaces] = useState<string[]>([])
@@ -18,6 +23,7 @@ function CreateApplication() {
   const [serviceType, setServiceType] = useState('ClusterIP')
   const [servicePort, setServicePort] = useState<number>(80)
   const [targetPort, setTargetPort] = useState<number>(8080)
+  const [envData, setEnvData] = useState<EnvData[]>([{ key: '', value: '' }])
 
   useEffect(() => {
     loadNamespaces()
@@ -34,6 +40,22 @@ function CreateApplication() {
       }
     } catch (err) {
       console.error('Erro ao carregar namespaces:', err)
+    }
+  }
+
+  const handleEnvDataChange = (index: number, field: 'key' | 'value', value: string) => {
+    const newData = [...envData]
+    newData[index][field] = value
+    setEnvData(newData)
+  }
+
+  const addEnvDataRow = () => {
+    setEnvData([...envData, { key: '', value: '' }])
+  }
+
+  const removeEnvDataRow = (index: number) => {
+    if (envData.length > 1) {
+      setEnvData(envData.filter((_, i) => i !== index))
     }
   }
 
@@ -90,6 +112,13 @@ function CreateApplication() {
     setSuccess(null)
 
     try {
+      const envMap: Record<string, string> = {}
+      envData.forEach((item) => {
+        if (item.key.trim() && item.value.trim()) {
+          envMap[item.key.trim()] = item.value.trim()
+        }
+      })
+
       const request: CreateApplicationRequest = {
         namespace: namespace.trim(),
         name: name.trim(),
@@ -99,6 +128,10 @@ function CreateApplication() {
         serviceType: serviceType,
         servicePort: servicePort,
         targetPort: targetPort,
+      }
+
+      if (Object.keys(envMap).length > 0) {
+        request.env = envMap
       }
 
       const response = await k8sService.createApplication(request)
@@ -113,6 +146,7 @@ function CreateApplication() {
         setServicePort(80)
         setServiceType('ClusterIP')
         setTargetPort(8080)
+        setEnvData([{ key: '', value: '' }])
       }, 2000)
     } catch (err: any) {
       setError(err.message || 'Erro ao criar aplicação. Verifique os dados e tente novamente.')
@@ -298,6 +332,46 @@ function CreateApplication() {
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Porta do container que o Service irá encaminhar o tráfego (geralmente igual à porta do container)
           </p>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            Variáveis de Ambiente (ENV) (opcional)
+          </label>
+          {envData.map((item, index) => (
+            <div key={index} className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={item.key}
+                onChange={(e) => handleEnvDataChange(index, 'key', e.target.value)}
+                placeholder="chave"
+                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+              />
+              <input
+                type="text"
+                value={item.value}
+                onChange={(e) => handleEnvDataChange(index, 'value', e.target.value)}
+                placeholder="valor"
+                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+              />
+              {envData.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeEnvDataRow(index)}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Remover
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addEnvDataRow}
+            className="mt-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+          >
+            + Adicionar Linha
+          </button>
         </div>
 
         {error && (

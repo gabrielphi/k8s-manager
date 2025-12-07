@@ -40,6 +40,7 @@ export interface CreateResourceRequest {
   containerPort?: number
   secretType?: string
   data?: Record<string, string>
+  env?: Record<string, string>
   host?: string
   serviceName?: string
   servicePort?: number
@@ -57,6 +58,7 @@ export interface CreateApplicationRequest {
   serviceType: string
   servicePort: number
   targetPort: number
+  env?: Record<string, string>
 }
 
 export interface CreateResourceResponse {

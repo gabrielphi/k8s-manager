@@ -9,6 +9,11 @@ interface SecretData {
   value: string
 }
 
+interface EnvData {
+  key: string
+  value: string
+}
+
 function Create() {
   const navigate = useNavigate()
   const [resourceType, setResourceType] = useState<ResourceType>('pod')
@@ -25,6 +30,7 @@ function Create() {
   const [containerPort, setContainerPort] = useState<number>(8080)
   const [secretType, setSecretType] = useState('Opaque')
   const [secretData, setSecretData] = useState<SecretData[]>([{ key: '', value: '' }])
+  const [envData, setEnvData] = useState<EnvData[]>([{ key: '', value: '' }])
   const [host, setHost] = useState('')
   const [serviceName, setServiceName] = useState('')
   const [servicePort, setServicePort] = useState<number>(80)
@@ -47,6 +53,7 @@ function Create() {
     setContainerPort(8080)
     setSecretType('Opaque')
     setSecretData([{ key: '', value: '' }])
+    setEnvData([{ key: '', value: '' }])
     setHost('')
     setServiceName('')
     setServicePort(80)
@@ -82,6 +89,22 @@ function Create() {
   const removeSecretDataRow = (index: number) => {
     if (secretData.length > 1) {
       setSecretData(secretData.filter((_, i) => i !== index))
+    }
+  }
+
+  const handleEnvDataChange = (index: number, field: 'key' | 'value', value: string) => {
+    const newData = [...envData]
+    newData[index][field] = value
+    setEnvData(newData)
+  }
+
+  const addEnvDataRow = () => {
+    setEnvData([...envData, { key: '', value: '' }])
+  }
+
+  const removeEnvDataRow = (index: number) => {
+    if (envData.length > 1) {
+      setEnvData(envData.filter((_, i) => i !== index))
     }
   }
 
@@ -193,6 +216,15 @@ function Create() {
         if (containerPort > 0) {
           request.containerPort = containerPort
         }
+        const envMap: Record<string, string> = {}
+        envData.forEach((item) => {
+          if (item.key.trim() && item.value.trim()) {
+            envMap[item.key.trim()] = item.value.trim()
+          }
+        })
+        if (Object.keys(envMap).length > 0) {
+          request.env = envMap
+        }
       }
 
       if (resourceType === 'secret') {
@@ -228,6 +260,7 @@ function Create() {
         setReplicas(1)
         setContainerPort(8080)
         setSecretData([{ key: '', value: '' }])
+        setEnvData([{ key: '', value: '' }])
         setHost('')
         setServiceName('')
         setServicePort(80)
@@ -374,6 +407,45 @@ function Create() {
                   max="65535"
                   className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Variáveis de Ambiente (ENV) (opcional)
+                </label>
+                {envData.map((item, index) => (
+                  <div key={index} className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={item.key}
+                      onChange={(e) => handleEnvDataChange(index, 'key', e.target.value)}
+                      placeholder="chave"
+                      className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                    />
+                    <input
+                      type="text"
+                      value={item.value}
+                      onChange={(e) => handleEnvDataChange(index, 'value', e.target.value)}
+                      placeholder="valor"
+                      className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                    />
+                    {envData.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeEnvDataRow(index)}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      >
+                        Remover
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addEnvDataRow}
+                  className="mt-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  + Adicionar Linha
+                </button>
               </div>
             </>
           )}
