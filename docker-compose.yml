@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: k8s-manager-backend
+    ports:
+      - "7000:7000"
+    volumes:
+      # Mount kubeconfig to access Kubernetes cluster
+      # Ajuste o caminho conforme seu sistema operacional:
+      # Linux/Mac: ~/.kube/config:/root/.kube/config:ro
+      # Windows: C:/Users/SEU_USUARIO/.kube/config:/root/.kube/config:ro
+      - ~/.kube/config:/root/.kube/config:ro
+    environment:
+      - KUBECONFIG=/root/.kube/config
+    restart: unless-stopped
+    networks:
+      - k8s-manager-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:7000
+    container_name: k8s-manager-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - k8s-manager-network
+
+networks:
+  k8s-manager-network:
+    driver: bridge
