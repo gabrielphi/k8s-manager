@@ -398,7 +398,7 @@ function Create() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Dados (Key-Value) *
                 </label>
                 {secretData.map((item, index) => (
@@ -408,14 +408,14 @@ function Create() {
                       value={item.key}
                       onChange={(e) => handleSecretDataChange(index, 'key', e.target.value)}
                       placeholder="chave"
-                      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                     />
                     <input
                       type="text"
                       value={item.value}
                       onChange={(e) => handleSecretDataChange(index, 'value', e.target.value)}
                       placeholder="valor"
-                      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                     />
                     {secretData.length > 1 && (
                       <button
