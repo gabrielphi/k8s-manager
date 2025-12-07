@@ -167,3 +167,22 @@ func CreateIngress(namespace, name, host, serviceName string, servicePort int32)
 	}
 	return nil
 }
+
+// CreateApplication cria um Deployment e um Service juntos
+func CreateApplication(namespace, name, image string, replicas int32, containerPort int32, serviceType string, servicePort int32, targetPort int) error {
+	// Primeiro cria o Deployment
+	err := CreateDeployment(namespace, name, image, replicas, containerPort)
+	if err != nil {
+		return err
+	}
+
+	// Depois cria o Service
+	err = CreateService(namespace, name, serviceType, servicePort, targetPort)
+	if err != nil {
+		// Se o Service falhar, o Deployment já foi criado
+		// Em produção, você pode querer fazer rollback do Deployment aqui
+		return err
+	}
+
+	return nil
+}

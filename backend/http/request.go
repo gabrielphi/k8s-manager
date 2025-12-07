@@ -216,6 +216,18 @@ type CreateResourceRequest struct {
 	Port          *int32            `json:"port,omitempty"`
 }
 
+// CreateApplicationRequest define o payload para criar uma aplicação (deployment + service)
+type CreateApplicationRequest struct {
+	Namespace     string `json:"namespace"`
+	Name          string `json:"name"`
+	Image         string `json:"image"`
+	Replicas      int32  `json:"replicas"`
+	ContainerPort int32  `json:"containerPort"`
+	ServiceType   string `json:"serviceType"`
+	ServicePort   int32  `json:"servicePort"`
+	TargetPort    int    `json:"targetPort"`
+}
+
 func createResourceHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("createResourceHandler chamado com método: %s", r.Method)
 
@@ -296,11 +308,85 @@ func createResourceHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func createApplicationHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("createApplicationHandler chamado com método: %s", r.Method)
+
+	if r.Method != http.MethodPost {
+		log.Printf("Método não permitido: %s (esperado: POST)", r.Method)
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req CreateApplicationRequest
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&req); err != nil {
+		if err == io.EOF {
+			http.Error(w, "Corpo da requisição não pode ser vazio", http.StatusBadRequest)
+			return
+		}
+		log.Printf("ERRO ao decodificar JSON: %v", err)
+		http.Error(w, "JSON mal formatado", http.StatusBadRequest)
+		return
+	}
+
+	// Validação dos campos obrigatórios
+	if req.Namespace == "" || req.Name == "" || req.Image == "" {
+		http.Error(w, "Campos 'namespace', 'name' e 'image' são obrigatórios", http.StatusBadRequest)
+		return
+	}
+
+	if req.Replicas < 1 {
+		http.Error(w, "Número de réplicas deve ser maior que 0", http.StatusBadRequest)
+		return
+	}
+
+	if req.ServiceType == "" {
+		req.ServiceType = "ClusterIP"
+	}
+
+	if req.ServicePort < 1 || req.ServicePort > 65535 {
+		http.Error(w, "Porta do Service deve estar entre 1 e 65535", http.StatusBadRequest)
+		return
+	}
+
+	if req.TargetPort < 1 || req.TargetPort > 65535 {
+		http.Error(w, "Porta de destino (Target Port) deve estar entre 1 e 65535", http.StatusBadRequest)
+		return
+	}
+
+	// Cria a aplicação (deployment + service)
+	err := k8s.CreateApplication(
+		req.Namespace,
+		req.Name,
+		req.Image,
+		req.Replicas,
+		req.ContainerPort,
+		req.ServiceType,
+		req.ServicePort,
+		req.TargetPort,
+	)
+
+	if err != nil {
+		log.Printf("ERRO ao criar aplicação: %v", err)
+		http.Error(w, fmt.Sprintf("Erro ao criar aplicação: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	response := map[string]string{
+		"status":  "sucesso",
+		"message": fmt.Sprintf("Aplicação '%s' (Deployment + Service) está sendo criada.", req.Name),
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
 func Listen() {
 	// Aplica o middleware CORS ao handler
 	http.HandleFunc("GET /listAllPods/{namespace}", corsMiddleware(listPodsHandler))
 	http.HandleFunc("GET /listAllDeployments/{namespace}", corsMiddleware(listDeploymentsHandler))
 	http.HandleFunc("POST /createResource", corsMiddleware(createResourceHandler))
+	http.HandleFunc("POST /createApplication", corsMiddleware(createApplicationHandler))
 	http.HandleFunc("GET /listAllNs", corsMiddleware(listNsHandler))
 	http.HandleFunc("POST /deletePod", corsMiddleware(deletePodHandler))
 
@@ -308,6 +394,7 @@ func Listen() {
 	http.HandleFunc("OPTIONS /listAllPods/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /listAllDeployments/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /createResource", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
+	http.HandleFunc("OPTIONS /createApplication", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /listAllNs", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /deletePod", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 

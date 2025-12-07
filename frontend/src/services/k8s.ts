@@ -48,6 +48,17 @@ export interface CreateResourceRequest {
   targetPort?: number
 }
 
+export interface CreateApplicationRequest {
+  namespace: string
+  name: string
+  image: string
+  replicas: number
+  containerPort: number
+  serviceType: string
+  servicePort: number
+  targetPort: number
+}
+
 export interface CreateResourceResponse {
   status: string
   message: string
@@ -110,6 +121,17 @@ export const k8sService = {
     } catch (error) {
       console.error('Erro ao listar deployments:', error)
       return []
+    }
+  },
+
+  async createApplication(data: CreateApplicationRequest): Promise<CreateResourceResponse> {
+    try {
+      const response = await api.post<CreateResourceResponse>('/createApplication', data)
+      return response.data
+    } catch (error: any) {
+      console.error('Erro ao criar aplicação:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Erro ao criar aplicação'
+      throw new Error(errorMessage)
     }
   },
 }
