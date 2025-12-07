@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getPods, Pod, getNamespaces, Namespace, deletePod } from '../services/k8s';
+import { getPods, Pod, getNamespaces, deletePod } from '../services/k8s';
 
 function Pods() {
   const [pods, setPods] = useState<Pod[]>([]);
-  const [namespaces, setNamespaces] = useState<Namespace[]>([]);
+  const [namespaces, setNamespaces] = useState<string[]>([]);
   const [selectedNamespace, setSelectedNamespace] = useState<string>('default');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,8 +62,8 @@ function Pods() {
           className="p-2 border rounded"
         >
           {namespaces.map((ns) => (
-            <option key={ns.name} value={ns.name}>
-              {ns.name}
+            <option key={ns} value={ns}>
+              {ns}
             </option>
           ))}
         </select>
@@ -77,8 +77,9 @@ function Pods() {
               <th className="py-2 px-4 border-b">Name</th>
               <th className="py-2 px-4 border-b">Namespace</th>
               <th className="py-2 px-4 border-b">Status</th>
-              <th className="py-2 px-4 border-b">Restarts</th>
-              <th className="py-2 px-4 border-b">Age</th>
+              <th className="py-2 px-4 border-b">IP</th>
+              <th className="py-2 px-4 border-b">Node</th>
+              <th className="py-2 px-4 border-b">Image</th>
               <th className="py-2 px-4 border-b">Actions</th>
             </tr>
           </thead>
@@ -88,8 +89,9 @@ function Pods() {
                 <td className="py-2 px-4 border-b">{pod.name}</td>
                 <td className="py-2 px-4 border-b">{pod.namespace}</td>
                 <td className="py-2 px-4 border-b">{pod.status}</td>
-                <td className="py-2 px-4 border-b">{pod.restarts}</td>
-                <td className="py-2 px-4 border-b">{pod.age}</td>
+                <td className="py-2 px-4 border-b">{pod.ip}</td>
+                <td className="py-2 px-4 border-b">{pod.node}</td>
+                <td className="py-2 px-4 border-b">{pod.image}</td>
                 <td className="py-2 px-4 border-b">
                   <button
                     onClick={() => handleDeletePod(pod.name, pod.namespace)}
