@@ -8,10 +8,11 @@ ARG VITE_API_BASE_URL=http://localhost:7000
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 # Install dependencies
-RUN npm ci
+# Use npm install instead of npm ci since package-lock.json may not exist
+RUN npm install
 
 # Copy source code
 COPY . .
