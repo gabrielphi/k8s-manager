@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createResource, getNamespaces, Namespace } from '../services/k8s';
+import { createResource, getNamespaces } from '../services/k8s';
 
 function Create() {
-  const [namespaces, setNamespaces] = useState<Namespace[]>([]);
+  const [namespaces, setNamespaces] = useState<string[]>([]);
   const [name, setName] = useState('');
   const [namespace, setNamespace] = useState('default');
   const [image, setImage] = useState('');
@@ -74,8 +74,8 @@ function Create() {
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           >
             {namespaces.map((ns) => (
-              <option key={ns.name} value={ns.name}>
-                {ns.name}
+              <option key={ns} value={ns}>
+                {ns}
               </option>
             ))}
           </select>
