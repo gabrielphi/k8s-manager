@@ -579,6 +579,75 @@ function Pods() {
             </div>
           </div>
         )}
+
+        {!loading && viewType === 'services' && filteredServices.length > 0 && (
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50 dark:bg-slate-700">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Nome
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Namespace
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Tipo
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Porta
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Target Port
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                  {filteredServices.map((service) => (
+                    <tr key={`${service.namespace}-${service.nome}`} className="hover:bg-slate-50 dark:hover:bg-slate-700">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-slate-900 dark:text-white">
+                          {service.nome}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-500 dark:text-slate-400">{service.namespace}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          {service.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono">
+                          {service.port || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono">
+                          {service.targetPort || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleDeleteService(service.nome, service.namespace)}
+                          disabled={loading}
+                          className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Deletar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
     </div>
   )
 }
