@@ -311,7 +311,7 @@ function Create() {
             <div className="mb-4">
               <label
                 htmlFor="namespace"
-                className="block text-sm font-medium text-slate-700 mb-2"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
               >
                 Namespace *
               </label>
@@ -335,7 +335,7 @@ function Create() {
           <div className="mb-4">
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-slate-700 mb-2"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
             >
               Nome *
             </label>
@@ -344,7 +344,7 @@ function Create() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
               placeholder="nome-do-recurso"
               required
             />
@@ -355,7 +355,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="image"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Imagem Docker *
                 </label>
@@ -377,7 +377,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="replicas"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Réplicas *
                 </label>
@@ -394,7 +394,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="containerPort"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Porta do Container (opcional)
                 </label>
@@ -455,7 +455,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="secretType"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Tipo de Secret
                 </label>
@@ -515,7 +515,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="host"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Host *
                 </label>
@@ -532,7 +532,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="serviceName"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Nome do Service *
                 </label>
@@ -549,7 +549,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="servicePort"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Porta do Service *
                 </label>
@@ -572,7 +572,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="serviceType"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Tipo de Service *
                 </label>
@@ -592,7 +592,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="port"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Porta do Service *
                 </label>
@@ -614,7 +614,7 @@ function Create() {
               <div className="mb-4">
                 <label
                   htmlFor="targetPort"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Porta de Destino (Target Port) *
                 </label>

@@ -129,6 +129,25 @@ function Pods() {
     }
   }
 
+  const handleDeleteDeployment = async (name: string, namespace: string) => {
+    if (!confirm(`Tem certeza que deseja deletar o deployment "${name}" no namespace "${namespace}"?`)) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      setError(null)
+      await k8sService.deleteDeployment(name, namespace)
+      // Recarrega a lista de deployments após deletar
+      await loadDeployments(namespace)
+    } catch (err: any) {
+      setError(err.message || 'Erro ao deletar deployment')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Filtra os pods baseado no termo de busca (nome ou imagem)
   const filteredPods = pods.filter((pod) => {
     if (!searchTerm) return true
@@ -422,18 +441,21 @@ function Pods() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Image
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Ações
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
                   {filteredDeployments.map((deployment) => (
-                    <tr key={`${deployment.namespace}-${deployment.nome}`} className="hover:bg-slate-50">
+                    <tr key={`${deployment.namespace}-${deployment.nome}`} className="hover:bg-slate-50 dark:hover:bg-slate-700">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-slate-900 dark:text-white">
                           {deployment.nome}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-500">{deployment.namespace}</div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400">{deployment.namespace}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -445,7 +467,7 @@ function Pods() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-500">
+                        <div className="text-sm text-slate-500 dark:text-slate-400">
                           {deployment.replicas}
                         </div>
                       </td>
@@ -455,9 +477,18 @@ function Pods() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-slate-500 font-mono truncate max-w-xs">
+                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono truncate max-w-xs">
                           {deployment.image}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleDeleteDeployment(deployment.nome, deployment.namespace)}
+                          disabled={loading}
+                          className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Deletar
+                        </button>
                       </td>
                     </tr>
                   ))}

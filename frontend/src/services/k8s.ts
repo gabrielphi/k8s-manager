@@ -116,6 +116,20 @@ export const k8sService = {
     }
   },
 
+  async deleteDeployment(name: string, namespace: string): Promise<CreateResourceResponse> {
+    try {
+      const response = await api.post<CreateResourceResponse>('/deleteDeployment', {
+        name,
+        namespace,
+      })
+      return response.data
+    } catch (error: any) {
+      console.error('Erro ao deletar deployment:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Erro ao deletar deployment'
+      throw new Error(errorMessage)
+    }
+  },
+
   async listDeployments(namespace: string): Promise<DeploymentInfo[]> {
     try {
       const response = await api.get<DeploymentInfo[]>(`/listAllDeployments/${namespace}`)

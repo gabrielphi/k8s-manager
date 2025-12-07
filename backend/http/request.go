@@ -133,9 +133,10 @@ func listNsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 
-type PodDeleteRequest struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
+type ResourceDeleteRequest struct {
+	Name      string            `json:"name"`
+	Namespace string            `json:"namespace"`
+	Env       map[string]string `json:"env,omitempty"`
 }
 
 func deletePodHandler(w http.ResponseWriter, r *http.Request) {
@@ -148,7 +149,7 @@ func deletePodHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 2. Declare uma variável do tipo da sua struct para ser o destino dos dados.
-	var podReq PodDeleteRequest
+	var podReq ResourceDeleteRequest
 
 	// 3. Crie um decoder que lê diretamente do corpo da requisição.
 	//    Isso é mais eficiente do que ler o corpo inteiro para a memória primeiro.
@@ -196,6 +197,111 @@ func deletePodHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 
 	log.Printf("Pod Deletado com sucesso: %s", podReq.Name)
+}
+
+func deleteDeploymentHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("deleteDeploymentHandler chamado com método: %s", r.Method)
+
+	if r.Method != http.MethodPost {
+		log.Printf("Método não permitido: %s (esperado: POST)", r.Method)
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var deploymentReq ResourceDeleteRequest
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&deploymentReq)
+	if err != nil {
+		log.Printf("ERRO ao decodificar JSON: %v", err)
+		http.Error(w, "JSON mal formatado", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Deletando deployment: %s no namespace: %s", deploymentReq.Name, deploymentReq.Namespace)
+
+	err = k8s.DeleteDeployment(deploymentReq.Name, deploymentReq.Namespace)
+	if err != nil {
+		log.Printf("ERRO ao Deletar deployment: %v", err)
+		http.Error(w, fmt.Sprintf("Erro ao Deletar deployment: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	response := map[string]string{"status": "sucesso", "message": fmt.Sprintf("Deployment '%s' foi deletado.", deploymentReq.Name)}
+	json.NewEncoder(w).Encode(response)
+	log.Printf("Deployment Deletado com sucesso: %s", deploymentReq.Name)
+}
+
+func deleteServiceHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("deleteServiceHandler chamado com método: %s", r.Method)
+
+	if r.Method != http.MethodPost {
+		log.Printf("Método não permitido: %s (esperado: POST)", r.Method)
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var serviceReq ResourceDeleteRequest
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&serviceReq)
+	if err != nil {
+		log.Printf("ERRO ao decodificar JSON: %v", err)
+		http.Error(w, "JSON mal formatado", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Deletando service: %s no namespace: %s", serviceReq.Name, serviceReq.Namespace)
+
+	err = k8s.DeleteService(serviceReq.Name, serviceReq.Namespace)
+	if err != nil {
+		log.Printf("ERRO ao Deletar service: %v", err)
+		http.Error(w, fmt.Sprintf("Erro ao Deletar service: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	response := map[string]string{"status": "sucesso", "message": fmt.Sprintf("Service '%s' foi deletado.", serviceReq.Name)}
+	json.NewEncoder(w).Encode(response)
+	log.Printf("Service Deletado com sucesso: %s", serviceReq.Name)
+}
+
+func deleteSecretHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("deleteSecretHandler chamado com método: %s", r.Method)
+
+	if r.Method != http.MethodPost {
+		log.Printf("Método não permitido: %s (esperado: POST)", r.Method)
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var secretReq ResourceDeleteRequest
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&secretReq)
+	if err != nil {
+		log.Printf("ERRO ao decodificar JSON: %v", err)
+		http.Error(w, "JSON mal formatado", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Deletando secret: %s no namespace: %s", secretReq.Name, secretReq.Namespace)
+
+	err = k8s.DeleteSecret(secretReq.Name, secretReq.Namespace)
+	if err != nil {
+		log.Printf("ERRO ao Deletar secret: %v", err)
+		http.Error(w, fmt.Sprintf("Erro ao Deletar secret: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	response := map[string]string{"status": "sucesso", "message": fmt.Sprintf("Secret '%s' foi deletado.", secretReq.Name)}
+	json.NewEncoder(w).Encode(response)
+	log.Printf("Secret Deletado com sucesso: %s", secretReq.Name)
 }
 
 // CreateResourceRequest define um payload unificado para criação de recursos
@@ -392,7 +498,9 @@ func Listen() {
 	http.HandleFunc("POST /createApplication", corsMiddleware(createApplicationHandler))
 	http.HandleFunc("GET /listAllNs", corsMiddleware(listNsHandler))
 	http.HandleFunc("POST /deletePod", corsMiddleware(deletePodHandler))
-
+	http.HandleFunc("POST /deleteDeployment", corsMiddleware(deleteDeploymentHandler))
+	http.HandleFunc("POST /deleteService", corsMiddleware(deleteServiceHandler))
+	http.HandleFunc("POST /deleteSecret", corsMiddleware(deleteSecretHandler))
 	// Adiciona handler para requisições OPTIONS (preflight) para ambas as rotas
 	http.HandleFunc("OPTIONS /listAllPods/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /listAllDeployments/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
@@ -400,7 +508,9 @@ func Listen() {
 	http.HandleFunc("OPTIONS /createApplication", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /listAllNs", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /deletePod", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
-
+	http.HandleFunc("OPTIONS /deleteDeployment", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
+	http.HandleFunc("OPTIONS /deleteService", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
+	http.HandleFunc("OPTIONS /deleteSecret", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	log.Println("Servidor iniciado na porta 7000 com CORS habilitado")
 	log.Fatal(http.ListenAndServe(":7000", nil))
 }
