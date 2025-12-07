@@ -1,5 +1,8 @@
 import axios from 'axios'
 
+// Usa a URL do backend definida nas variáveis de ambiente
+// Com network_mode: host no Docker, localhost:7000 funciona do navegador
+// Em desenvolvimento local, também funciona diretamente
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000'
 
 const api = axios.create({
