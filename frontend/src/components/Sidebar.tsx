@@ -50,6 +50,16 @@ function Sidebar() {
     if (path === '/') {
       return location.pathname === '/'
     }
+    // Verificação exata para evitar conflitos entre /create e /create-application
+    if (location.pathname === path) {
+      return true
+    }
+    // Para rotas que podem ter conflito (como /create vs /create-application),
+    // usa verificação exata apenas
+    if (path === '/create' || path === '/create-application') {
+      return false
+    }
+    // Para outras rotas, usa startsWith
     return location.pathname.startsWith(path)
   }
 

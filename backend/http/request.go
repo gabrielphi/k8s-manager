@@ -219,14 +219,15 @@ type CreateResourceRequest struct {
 
 // CreateApplicationRequest define o payload para criar uma aplicação (deployment + service)
 type CreateApplicationRequest struct {
-	Namespace     string `json:"namespace"`
-	Name          string `json:"name"`
-	Image         string `json:"image"`
-	Replicas      int32  `json:"replicas"`
-	ContainerPort int32  `json:"containerPort"`
-	ServiceType   string `json:"serviceType"`
-	ServicePort   int32  `json:"servicePort"`
-	TargetPort    int    `json:"targetPort"`
+	Namespace     string            `json:"namespace"`
+	Name          string            `json:"name"`
+	Image         string            `json:"image"`
+	Replicas      int32             `json:"replicas"`
+	ContainerPort int32             `json:"containerPort"`
+	ServiceType   string            `json:"serviceType"`
+	ServicePort   int32             `json:"servicePort"`
+	TargetPort    int               `json:"targetPort"`
+	Env           map[string]string `json:"env,omitempty"`
 }
 
 func createResourceHandler(w http.ResponseWriter, r *http.Request) {
@@ -272,7 +273,7 @@ func createResourceHandler(w http.ResponseWriter, r *http.Request) {
 		if req.ContainerPort != nil {
 			cport = *req.ContainerPort
 		}
-		err = k8s.CreateDeployment(req.Namespace, req.Name, req.Image, *req.Replicas, cport)
+		err = k8s.CreateDeployment(req.Namespace, req.Name, req.Image, *req.Replicas, cport, req.Env)
 	case "secret":
 		if req.SecretType == "" {
 			req.SecretType = "Opaque"
@@ -365,6 +366,7 @@ func createApplicationHandler(w http.ResponseWriter, r *http.Request) {
 		req.ServiceType,
 		req.ServicePort,
 		req.TargetPort,
+		req.Env,
 	)
 
 	if err != nil {
