@@ -466,7 +466,6 @@ function Pods() {
             </div>
           </div>
         )}
-      </div>
     </div>
   )
 }
