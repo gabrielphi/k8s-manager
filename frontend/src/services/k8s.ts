@@ -31,6 +31,15 @@ export interface DeploymentInfo {
   selector: Record<string, string>
 }
 
+export interface ServiceInfo {
+  nome: string
+  namespace: string
+  port: number
+  targetPort: number
+  type: string
+  selector: Record<string, string>
+}
+
 export interface CreateResourceRequest {
   kind: 'container' | 'pod' | 'deployment' | 'secret' | 'ingress' | 'namespace' | 'service'
   namespace?: string
@@ -130,12 +139,36 @@ export const k8sService = {
     }
   },
 
+  async deleteService(name: string, namespace: string): Promise<CreateResourceResponse> {
+    try {
+      const response = await api.post<CreateResourceResponse>('/deleteService', {
+        name,
+        namespace,
+      })
+      return response.data
+    } catch (error: any) {
+      console.error('Erro ao deletar service:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Erro ao deletar service'
+      throw new Error(errorMessage)
+    }
+  },
+
   async listDeployments(namespace: string): Promise<DeploymentInfo[]> {
     try {
       const response = await api.get<DeploymentInfo[]>(`/listAllDeployments/${namespace}`)
       return Array.isArray(response.data) ? response.data : []
     } catch (error) {
       console.error('Erro ao listar deployments:', error)
+      return []
+    }
+  },
+
+  async listServices(namespace: string): Promise<ServiceInfo[]> {
+    try {
+      const response = await api.get<ServiceInfo[]>(`/listAllServices/${namespace}`)
+      return Array.isArray(response.data) ? response.data : []
+    } catch (error) {
+      console.error('Erro ao listar services:', error)
       return []
     }
   },

@@ -18,13 +18,21 @@ type PodInfo struct {
 	Image     string `json:"image"`
 }
 type DeploymentInfo struct {
-	Nome      string `json:"nome"`
-	Namespace string `json:"namespace"`
-	Status    string `json:"status"`
-	Image     string `json:"image"`
-	Replicas  int32 `json:"replicas"`
-	ContainerPort int32 `json:"containerPort"`
-	Selector map[string]string `json:"selector"`
+	Nome          string            `json:"nome"`
+	Namespace     string            `json:"namespace"`
+	Status        string            `json:"status"`
+	Image         string            `json:"image"`
+	Replicas      int32             `json:"replicas"`
+	ContainerPort int32             `json:"containerPort"`
+	Selector      map[string]string `json:"selector"`
+}
+type ServiceInfo struct {
+	Nome       string            `json:"nome"`
+	Port       int32             `json:"port"`
+	TargetPort int32             `json:"targetPort"`
+	Selector   map[string]string `json:"selector"`
+	Type       string            `json:"type"`
+	Namespace  string            `json:"namespace"`
 }
 
 // ListarPods agora retorna um slice de PodInfo e um erro.
@@ -102,7 +110,25 @@ func ListDeployments(namespace string) ([]DeploymentInfo, error) {
 	return deploymentsInfo, nil
 }
 
-
+func ListServices(namespace string) ([]ServiceInfo, error) {
+	services, err := client.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("erro ao listar services: %w", err)
+	}
+	var servicesInfo []ServiceInfo
+	for _, service := range services.Items {
+		info := ServiceInfo{
+			Nome:       service.Name,
+			Port:       service.Spec.Ports[0].Port,
+			TargetPort: service.Spec.Ports[0].TargetPort.IntVal,
+			Selector:   service.Spec.Selector,
+			Type:       string(service.Spec.Type),
+			Namespace:  service.Namespace,
+		}
+		servicesInfo = append(servicesInfo, info)
+	}
+	return servicesInfo, nil
+}
 
 func ListNamespaces() ([]string, error) {
 	log.Printf("🔍 ListNamespaces: Iniciando busca por namespaces")
