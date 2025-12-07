@@ -42,6 +42,33 @@ function Home() {
               </p>
             </Link>
 
+            <Link
+              to="/create"
+              className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200 hover:border-green-500"
+            >
+              <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-4 group-hover:bg-green-500 transition-colors">
+                <svg
+                  className="w-6 h-6 text-green-600 group-hover:text-white transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+                Criar Recursos
+              </h2>
+              <p className="text-slate-600">
+                Crie pods, deployments, secrets, ingress e namespaces
+              </p>
+            </Link>
+
             <div className="bg-white rounded-lg shadow-md p-6 border border-slate-200 opacity-50">
               <div className="flex items-center justify-center w-12 h-12 bg-slate-100 rounded-lg mb-4">
                 <svg

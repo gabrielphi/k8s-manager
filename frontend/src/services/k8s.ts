@@ -18,6 +18,25 @@ export interface PodInfo {
   image: string
 }
 
+export interface CreateResourceRequest {
+  kind: 'container' | 'pod' | 'deployment' | 'secret' | 'ingress' | 'namespace'
+  namespace?: string
+  name: string
+  image?: string
+  replicas?: number
+  containerPort?: number
+  secretType?: string
+  data?: Record<string, string>
+  host?: string
+  serviceName?: string
+  servicePort?: number
+}
+
+export interface CreateResourceResponse {
+  status: string
+  message: string
+}
+
 export const k8sService = {
   async listPods(namespace: string): Promise<PodInfo[]> {
     try {
@@ -40,6 +59,17 @@ export const k8sService = {
       console.error('Erro ao listar namespaces:', error)
       // Retorna array vazio em caso de erro ao invés de lançar exceção
       return []
+    }
+  },
+
+  async createResource(data: CreateResourceRequest): Promise<CreateResourceResponse> {
+    try {
+      const response = await api.post<CreateResourceResponse>('/createResource', data)
+      return response.data
+    } catch (error: any) {
+      console.error('Erro ao criar recurso:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Erro ao criar recurso'
+      throw new Error(errorMessage)
     }
   },
 }
