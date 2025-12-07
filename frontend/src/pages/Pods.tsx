@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { k8sService, PodInfo, DeploymentInfo } from '../services/k8s'
 
 type ViewType = 'pods' | 'deployments'
@@ -162,16 +163,22 @@ function Pods() {
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
+            <Link
+              to="/"
+              className="text-blue-600 hover:text-blue-800 font-medium mb-2 inline-block"
+            >
+              ← Voltar para Home
+            </Link>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Recursos Kubernetes</h1>
+              <h1 className="text-3xl font-bold text-slate-900">Recursos Kubernetes</h1>
               <button
                 onClick={handleRefresh}
                 disabled={loading}
-                className="p-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Atualizar lista"
               >
                 <svg
@@ -192,14 +199,14 @@ function Pods() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex flex-wrap gap-4 mb-4">
             <button
               onClick={() => setViewType('pods')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 viewType === 'pods'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               Pods
@@ -209,7 +216,7 @@ function Pods() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 viewType === 'deployments'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               Deployments
@@ -220,7 +227,7 @@ function Pods() {
             <div>
               <label
                 htmlFor="namespace-select"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className="block text-sm font-medium text-slate-700 mb-2"
               >
                 Namespace
               </label>
@@ -228,7 +235,7 @@ function Pods() {
                 id="namespace-select"
                 value={selectedNamespace}
                 onChange={(e) => setSelectedNamespace(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 disabled={loading}
               >
                 <option value="">Selecione um namespace</option>
@@ -243,7 +250,7 @@ function Pods() {
             <div>
               <label
                 htmlFor="search-input"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className="block text-sm font-medium text-slate-700 mb-2"
               >
                 Buscar {viewType === 'pods' ? 'Pod' : 'Deployment'}
               </label>
@@ -254,11 +261,11 @@ function Pods() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Buscar por nome ou imagem..."
-                  className="w-full px-4 py-2 pl-10 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                  className="w-full px-4 py-2 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   disabled={loading}
                 />
                 <svg
-                  className="absolute left-3 top-2.5 h-5 w-5 text-slate-400 dark:text-slate-500"
+                  className="absolute left-3 top-2.5 h-5 w-5 text-slate-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -276,89 +283,89 @@ function Pods() {
         </div>
 
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
 
         {loading && (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
-            <p className="mt-4 text-slate-600 dark:text-slate-400">Carregando...</p>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-slate-600">Carregando...</p>
           </div>
         )}
 
         {!loading && selectedNamespace && viewType === 'pods' && pods.length === 0 && !error && (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-12 text-center">
-            <p className="text-slate-600 dark:text-slate-400 text-lg">
-              Nenhum pod encontrado no namespace <strong className="text-slate-900 dark:text-white">{selectedNamespace}</strong>
+          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <p className="text-slate-600 text-lg">
+              Nenhum pod encontrado no namespace <strong>{selectedNamespace}</strong>
             </p>
           </div>
         )}
 
         {!loading && selectedNamespace && viewType === 'deployments' && deployments.length === 0 && !error && (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-12 text-center">
-            <p className="text-slate-600 dark:text-slate-400 text-lg">
-              Nenhum deployment encontrado no namespace <strong className="text-slate-900 dark:text-white">{selectedNamespace}</strong>
+          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <p className="text-slate-600 text-lg">
+              Nenhum deployment encontrado no namespace <strong>{selectedNamespace}</strong>
             </p>
           </div>
         )}
 
         {!loading && viewType === 'pods' && pods.length > 0 && filteredPods.length === 0 && searchTerm && (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-12 text-center">
-            <p className="text-slate-600 dark:text-slate-400 text-lg">
-              Nenhum pod encontrado com o termo de busca <strong className="text-slate-900 dark:text-white">"{searchTerm}"</strong>
+          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <p className="text-slate-600 text-lg">
+              Nenhum pod encontrado com o termo de busca <strong>"{searchTerm}"</strong>
             </p>
           </div>
         )}
 
         {!loading && viewType === 'deployments' && deployments.length > 0 && filteredDeployments.length === 0 && searchTerm && (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-12 text-center">
-            <p className="text-slate-600 dark:text-slate-400 text-lg">
-              Nenhum deployment encontrado com o termo de busca <strong className="text-slate-900 dark:text-white">"{searchTerm}"</strong>
+          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <p className="text-slate-600 text-lg">
+              Nenhum deployment encontrado com o termo de busca <strong>"{searchTerm}"</strong>
             </p>
           </div>
         )}
 
         {!loading && viewType === 'pods' && filteredPods.length > 0 && (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                <thead className="bg-slate-50 dark:bg-slate-700">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Nome
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Namespace
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       IP
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Node
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Image
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Ações
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                <tbody className="bg-white divide-y divide-slate-200">
                   {filteredPods.map((pod) => (
-                    <tr key={`${pod.namespace}-${pod.nome}`} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                    <tr key={`${pod.namespace}-${pod.nome}`} className="hover:bg-slate-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-slate-900 dark:text-white">
+                        <div className="text-sm font-medium text-slate-900">
                           {pod.nome}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">{pod.namespace}</div>
+                        <div className="text-sm text-slate-500">{pod.namespace}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -370,15 +377,15 @@ function Pods() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono">
+                        <div className="text-sm text-slate-500 font-mono">
                           {pod.ip || '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">{pod.node || '-'}</div>
+                        <div className="text-sm text-slate-500">{pod.node || '-'}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono truncate max-w-xs">
+                        <div className="text-sm text-slate-500 font-mono truncate max-w-xs">
                           {pod.image}
                         </div>
                       </td>
@@ -386,7 +393,7 @@ function Pods() {
                         <button
                           onClick={() => handleDeletePod(pod.nome, pod.namespace)}
                           disabled={loading}
-                          className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           Deletar
                         </button>
@@ -400,41 +407,41 @@ function Pods() {
         )}
 
         {!loading && viewType === 'deployments' && filteredDeployments.length > 0 && (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                <thead className="bg-slate-50 dark:bg-slate-700">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Nome
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Namespace
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Replicas
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Porta
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Image
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                <tbody className="bg-white divide-y divide-slate-200">
                   {filteredDeployments.map((deployment) => (
-                    <tr key={`${deployment.namespace}-${deployment.nome}`} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                    <tr key={`${deployment.namespace}-${deployment.nome}`} className="hover:bg-slate-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-slate-900 dark:text-white">
+                        <div className="text-sm font-medium text-slate-900">
                           {deployment.nome}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">{deployment.namespace}</div>
+                        <div className="text-sm text-slate-500">{deployment.namespace}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -446,17 +453,17 @@ function Pods() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-500 dark:text-slate-400">
+                        <div className="text-sm text-slate-500">
                           {deployment.replicas}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono">
+                        <div className="text-sm text-slate-500 font-mono">
                           {deployment.containerPort || '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-slate-500 dark:text-slate-400 font-mono truncate max-w-xs">
+                        <div className="text-sm text-slate-500 font-mono truncate max-w-xs">
                           {deployment.image}
                         </div>
                       </td>
