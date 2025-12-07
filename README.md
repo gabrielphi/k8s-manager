@@ -26,28 +26,58 @@ Substitua `SEU_USUARIO` pelo seu nome de usuário do Windows.
 
 ## Executando com Docker Compose
 
-1. Certifique-se de que seu kubeconfig está configurado corretamente
+### Desenvolvimento (com Hot Reload)
 
-2. Execute o docker-compose:
+Para desenvolvimento com hot reload automático:
 
 ```bash
-docker-compose up -d
+docker-compose -f docker-compose.dev.yml up --build
 ```
 
-3. Acesse a aplicação:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:7000
+**Características:**
+- Hot reload automático (frontend e backend)
+- Código fonte montado como volume
+- Cache otimizado de dependências
+
+### Produção
+
+Para executar em modo produção:
+
+```bash
+docker-compose -f docker-compose.prod.yml up --build
+```
+
+**Características:**
+- Imagens otimizadas (multi-stage build)
+- Frontend servido via Nginx
+- Backend como binário estático
+
+### Acesso
+
+Após iniciar os serviços:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:7000
+
+> 📖 **Documentação completa**: Veja [DOCKER.md](./DOCKER.md) para mais detalhes sobre desenvolvimento e produção.
 
 ## Parar os serviços
 
 ```bash
-docker-compose down
+# Desenvolvimento
+docker-compose -f docker-compose.dev.yml down
+
+# Produção
+docker-compose -f docker-compose.prod.yml down
 ```
 
 ## Reconstruir as imagens
 
 ```bash
-docker-compose build
+# Desenvolvimento
+docker-compose -f docker-compose.dev.yml build --no-cache
+
+# Produção
+docker-compose -f docker-compose.prod.yml build --no-cache
 ```
 
 ## Logs
