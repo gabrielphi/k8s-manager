@@ -26,13 +26,20 @@ function Pods() {
       setLoading(true)
       setError(null)
       const data = await k8sService.listNamespaces()
-      setNamespaces(data)
-      if (data.length > 0 && !selectedNamespace) {
-        setSelectedNamespace(data[0])
+      // Verifica se data é válido antes de usar
+      if (Array.isArray(data)) {
+        setNamespaces(data)
+        if (data.length > 0 && !selectedNamespace) {
+          setSelectedNamespace(data[0])
+        }
+      } else {
+        setNamespaces([])
+        setError('Erro ao carregar namespaces. Resposta inválida do servidor.')
       }
     } catch (err) {
       setError('Erro ao carregar namespaces. Verifique se o backend está rodando.')
       console.error(err)
+      setNamespaces([])
     } finally {
       setLoading(false)
     }
@@ -43,10 +50,17 @@ function Pods() {
       setLoading(true)
       setError(null)
       const data = await k8sService.listPods(namespace)
-      setPods(data)
+      // Verifica se data é válido antes de usar
+      if (Array.isArray(data)) {
+        setPods(data)
+      } else {
+        setPods([])
+        setError('Erro ao carregar pods. Resposta inválida do servidor.')
+      }
     } catch (err) {
       setError('Erro ao carregar pods. Verifique se o backend está rodando.')
       console.error(err)
+      setPods([])
     } finally {
       setLoading(false)
     }

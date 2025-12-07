@@ -22,20 +22,24 @@ export const k8sService = {
   async listPods(namespace: string): Promise<PodInfo[]> {
     try {
       const response = await api.get<PodInfo[]>(`/listAllPods/${namespace}`)
-      return response.data
+      // Garante que sempre retorna um array, mesmo se response.data for null/undefined
+      return Array.isArray(response.data) ? response.data : []
     } catch (error) {
       console.error('Erro ao listar pods:', error)
-      throw error
+      // Retorna array vazio em caso de erro ao invés de lançar exceção
+      return []
     }
   },
 
   async listNamespaces(): Promise<string[]> {
     try {
       const response = await api.get<string[]>('/listAllNs')
-      return response.data
+      // Garante que sempre retorna um array, mesmo se response.data for null/undefined
+      return Array.isArray(response.data) ? response.data : []
     } catch (error) {
       console.error('Erro ao listar namespaces:', error)
-      throw error
+      // Retorna array vazio em caso de erro ao invés de lançar exceção
+      return []
     }
   },
 }
