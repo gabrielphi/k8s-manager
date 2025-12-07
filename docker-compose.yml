@@ -24,9 +24,21 @@ services:
       - ~/.minikube:/home/gabriel/.minikube:ro
     environment:
       - KUBECONFIG=/root/.kube/config
+    # SOLUÇÃO PARA ACESSO AO MINIKUBE:
+    # O container precisa acessar o IP do minikube (192.168.49.2) que está na rede do host
+    # Opção 1 (Linux/WSL): Use network_mode: host para acessar a rede do host diretamente
+    # Descomente a linha abaixo e comente a seção 'networks:' se estiver no Linux/WSL
+    network_mode: host
+    # Opção 2 (Windows Docker Desktop): Se network_mode: host não funcionar, 
+    # conecte o container à rede do minikube executando:
+    # docker network ls | grep minikube  (para encontrar o nome da rede)
+    # Depois adicione o nome da rede na seção networks abaixo
     restart: unless-stopped
-    networks:
-      - k8s-manager-network
+    # Comente a seção networks abaixo se usar network_mode: host
+    # networks:
+    #   - k8s-manager-network
+    #   # Adicione aqui a rede do minikube se usar a Opção 2:
+    #   # - minikube
 
   frontend:
     build:
@@ -39,6 +51,10 @@ services:
       - "3000:80"
     depends_on:
       - backend
+    # Se o backend usar network_mode: host, o frontend precisa acessá-lo via host.docker.internal
+    # ou manter network_mode: host também. Por enquanto, mantemos a rede normal.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     networks:
       - k8s-manager-network
