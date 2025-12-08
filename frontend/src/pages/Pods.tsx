@@ -17,6 +17,9 @@ function Pods() {
   const [selectedDeployment, setSelectedDeployment] = useState<{ name: string; namespace: string; image: string; replicas: number } | null>(null)
   const [updateImage, setUpdateImage] = useState<string>('')
   const [updateReplicas, setUpdateReplicas] = useState<number>(1)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | null>(null)
+  const [confirmMessage, setConfirmMessage] = useState<string>('')
 
   useEffect(() => {
     loadNamespaces()
@@ -140,60 +143,66 @@ function Pods() {
   }
 
   const handleDeletePod = async (name: string, namespace: string) => {
-    if (!confirm(`Tem certeza que deseja deletar o pod "${name}" no namespace "${namespace}"?`)) {
-      return
-    }
-
-    try {
-      setLoading(true)
-      setError(null)
-      await k8sService.deletePod(name, namespace)
-      // Recarrega a lista de pods após deletar
-      await loadPods(namespace)
-    } catch (err: any) {
-      setError(err.message || 'Erro ao deletar pod')
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
+    setConfirmMessage(`Tem certeza que deseja deletar o pod "${name}" no namespace "${namespace}"?`)
+    setConfirmAction(async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        await k8sService.deletePod(name, namespace)
+        // Recarrega a lista de pods após deletar
+        await loadPods(namespace)
+      } catch (err: any) {
+        setError(err.message || 'Erro ao deletar pod')
+        console.error(err)
+      } finally {
+        setLoading(false)
+        setShowConfirmModal(false)
+        setConfirmAction(null)
+      }
+    })
+    setShowConfirmModal(true)
   }
 
   const handleDeleteDeployment = async (name: string, namespace: string) => {
-    if (!confirm(`Tem certeza que deseja deletar o deployment "${name}" no namespace "${namespace}"?`)) {
-      return
-    }
-
-    try {
-      setLoading(true)
-      setError(null)
-      await k8sService.deleteDeployment(name, namespace)
-      // Recarrega a lista de deployments após deletar
-      await loadDeployments(namespace)
-    } catch (err: any) {
-      setError(err.message || 'Erro ao deletar deployment')
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
+    setConfirmMessage(`Tem certeza que deseja deletar o deployment "${name}" no namespace "${namespace}"?`)
+    setConfirmAction(async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        await k8sService.deleteDeployment(name, namespace)
+        // Recarrega a lista de deployments após deletar
+        await loadDeployments(namespace)
+      } catch (err: any) {
+        setError(err.message || 'Erro ao deletar deployment')
+        console.error(err)
+      } finally {
+        setLoading(false)
+        setShowConfirmModal(false)
+        setConfirmAction(null)
+      }
+    })
+    setShowConfirmModal(true)
   }
 
   const handleDeleteService = async (name: string, namespace: string) => {
-    if (!confirm(`Tem certeza que deseja deletar o service "${name}" no namespace "${namespace}"?`)) {
-      return
-    }
-
-    try {
-      setLoading(true)
-      setError(null)
-      await k8sService.deleteService(name, namespace)
-      // Recarrega a lista de services após deletar
-      await loadServices(namespace)
-    } catch (err: any) {
-      setError(err.message || 'Erro ao deletar service')
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
+    setConfirmMessage(`Tem certeza que deseja deletar o service "${name}" no namespace "${namespace}"?`)
+    setConfirmAction(async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        await k8sService.deleteService(name, namespace)
+        // Recarrega a lista de services após deletar
+        await loadServices(namespace)
+      } catch (err: any) {
+        setError(err.message || 'Erro ao deletar service')
+        console.error(err)
+      } finally {
+        setLoading(false)
+        setShowConfirmModal(false)
+        setConfirmAction(null)
+      }
+    })
+    setShowConfirmModal(true)
   }
 
   const handleOpenUpdateModal = (deployment: DeploymentInfo) => {
@@ -250,6 +259,18 @@ function Pods() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleConfirm = async () => {
+    if (confirmAction) {
+      await confirmAction()
+    }
+  }
+
+  const handleCancelConfirm = () => {
+    setShowConfirmModal(false)
+    setConfirmAction(null)
+    setConfirmMessage('')
   }
 
   // Filtra os pods baseado no termo de busca (nome ou imagem)
@@ -738,6 +759,57 @@ function Pods() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Confirmação */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-red-600 dark:text-red-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    Confirmar Ação
+                  </h2>
+                </div>
+              </div>
+              
+              <p className="text-slate-700 dark:text-slate-300 mb-6">
+                {confirmMessage}
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleConfirm}
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? 'Processando...' : 'Confirmar'}
+                </button>
+                <button
+                  onClick={handleCancelConfirm}
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-md hover:bg-slate-400 dark:hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         )}
