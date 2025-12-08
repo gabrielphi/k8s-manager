@@ -1,86 +1,38 @@
 # Guia de Uso do Docker
 
-Este projeto possui configurações Docker separadas para **desenvolvimento** e **produção**.
+Este projeto utiliza Docker Compose para orquestração dos serviços.
 
 ## 📋 Estrutura de Arquivos
 
-### Desenvolvimento
-- `docker-compose.dev.yml` - Compose para desenvolvimento
-- `frontend/Dockerfile.dev` - Dockerfile do frontend para desenvolvimento
-- `backend/Dockerfile.dev` - Dockerfile do backend para desenvolvimento
+- `docker-compose.yml` - Configuração Docker Compose
+- `frontend/Dockerfile` - Dockerfile do frontend (multi-stage build)
+- `backend/Dockerfile` - Dockerfile do backend (multi-stage build)
 
-### Produção
-- `docker-compose.prod.yml` - Compose para produção
-- `frontend/Dockerfile` - Dockerfile do frontend para produção (multi-stage build)
-- `backend/Dockerfile` - Dockerfile do backend para produção (multi-stage build)
-
-## 🚀 Desenvolvimento
-
-### Características
-- **Hot Reload**: Mudanças no código são refletidas automaticamente
-- **Volumes montados**: Código fonte montado como volume para edição em tempo real
-- **Cache otimizado**: Volumes nomeados para cache de dependências
+## 🚀 Executando o Projeto
 
 ### Como usar
 
 ```bash
-# Iniciar serviços de desenvolvimento
-docker-compose -f docker-compose.dev.yml up --build
+# Iniciar serviços
+docker-compose up --build
 
 # Iniciar em background
-docker-compose -f docker-compose.dev.yml up -d --build
+docker-compose up -d --build
 
 # Ver logs
-docker-compose -f docker-compose.dev.yml logs -f
+docker-compose logs -f
+
+# Ver logs apenas do backend
+docker-compose logs -f backend
+
+# Ver logs apenas do frontend
+docker-compose logs -f frontend
 
 # Parar serviços
-docker-compose -f docker-compose.dev.yml down
+docker-compose down
 
 # Reconstruir apenas um serviço
-docker-compose -f docker-compose.dev.yml up --build backend
-```
-
-### Acessos
-- **Frontend**: http://localhost:3000 (Vite dev server)
-- **Backend**: http://localhost:7000
-
-### Hot Reload
-
-#### Frontend
-O Vite já possui hot reload nativo. Qualquer mudança nos arquivos `.tsx`, `.ts`, `.css` será refletida automaticamente.
-
-#### Backend
-O backend usa `go run` para execução em desenvolvimento. Para hot reload automático, você pode:
-- Reiniciar manualmente o container quando necessário
-- Usar ferramentas externas como `nodemon` ou `air` se desejar hot reload automático
-- O código fonte está montado como volume, então mudanças são refletidas após reiniciar
-
-## 🏭 Produção
-
-### Características
-- **Multi-stage builds**: Imagens otimizadas e menores
-- **Nginx**: Servidor web otimizado para o frontend
-- **Binário estático**: Backend compilado como binário único
-- **Sem código fonte**: Apenas artefatos de build são incluídos
-
-### Como usar
-
-```bash
-# Build e iniciar serviços de produção
-docker-compose -f docker-compose.prod.yml up --build
-
-# Build e iniciar em background
-docker-compose -f docker-compose.prod.yml up -d --build
-
-# Ver logs
-docker-compose -f docker-compose.prod.yml logs -f
-
-# Parar serviços
-docker-compose -f docker-compose.prod.yml down
-
-# Reconstruir apenas um serviço
-docker-compose -f docker-compose.prod.yml build backend
-docker-compose -f docker-compose.prod.yml up -d backend
+docker-compose up --build backend
 ```
 
 ### Acessos
@@ -117,12 +69,10 @@ volumes:
 ### Limpar recursos Docker
 ```bash
 # Remover containers parados
-docker-compose -f docker-compose.dev.yml down
-docker-compose -f docker-compose.prod.yml down
+docker-compose down
 
 # Remover volumes (cuidado: remove cache)
-docker-compose -f docker-compose.dev.yml down -v
-docker-compose -f docker-compose.prod.yml down -v
+docker-compose down -v
 
 # Limpar imagens não utilizadas
 docker image prune -a
@@ -130,54 +80,37 @@ docker image prune -a
 
 ### Rebuild completo
 ```bash
-# Desenvolvimento
-docker-compose -f docker-compose.dev.yml build --no-cache
-docker-compose -f docker-compose.dev.yml up
-
-# Produção
-docker-compose -f docker-compose.prod.yml build --no-cache
-docker-compose -f docker-compose.prod.yml up
+docker-compose build --no-cache
+docker-compose up
 ```
 
 ### Executar comandos dentro dos containers
 ```bash
-# Frontend (desenvolvimento)
-docker-compose -f docker-compose.dev.yml exec frontend npm install
+# Frontend
+docker-compose exec frontend npm install
 
-# Backend (desenvolvimento)
-docker-compose -f docker-compose.dev.yml exec backend go mod tidy
+# Backend
+docker-compose exec backend go mod tidy
 
 # Shell interativo
-docker-compose -f docker-compose.dev.yml exec frontend sh
-docker-compose -f docker-compose.dev.yml exec backend sh
+docker-compose exec frontend sh
+docker-compose exec backend sh
 ```
 
 ## 📝 Variáveis de Ambiente
 
 ### Frontend
 - `VITE_API_BASE_URL`: URL do backend (padrão: http://localhost:7000)
-- `CHOKIDAR_USEPOLLING`: Necessário para hot reload no Docker (true)
 
 ### Backend
 - `KUBECONFIG`: Caminho do arquivo kubeconfig (padrão: /root/.kube/config)
 
 ## 🐛 Troubleshooting
 
-### Hot reload não funciona no frontend
-1. Verifique se `CHOKIDAR_USEPOLLING=true` está definido
-2. Certifique-se de que os volumes estão montados corretamente
-3. Verifique os logs: `docker-compose -f docker-compose.dev.yml logs frontend`
-
-### Hot reload não funciona no backend
-1. O backend usa `go run` e requer reinicialização manual do container
-2. Para reiniciar: `docker-compose -f docker-compose.dev.yml restart backend`
-3. Verifique os logs: `docker-compose -f docker-compose.dev.yml logs backend`
-4. Se precisar de hot reload automático, considere usar ferramentas como `air` ou `nodemon` externamente
-
 ### Erro de conexão com Kubernetes
 1. Verifique se o kubeconfig está montado corretamente
 2. Verifique se os certificados do minikube estão montados
-3. Tente usar `network_mode: host` (já configurado)
+3. Tente usar `network_mode: host` (já configurado no docker-compose.yml)
 
 ### Porta já em uso
 ```bash
@@ -189,6 +122,12 @@ lsof -i :3000                 # Linux/Mac
 ports:
   - "3001:3000"  # Mapear porta 3001 do host para 3000 do container
 ```
+
+### Frontend não consegue conectar ao backend
+1. Verifique se `VITE_API_BASE_URL` está configurado corretamente
+2. Verifique se o backend está rodando
+3. Verifique os logs do backend: `docker-compose logs backend`
+4. Teste a API diretamente: `curl http://localhost:7000/listAllNs`
 
 ## 📚 Referências
 
