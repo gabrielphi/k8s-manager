@@ -13,6 +13,10 @@ function Pods() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState<string>('')
+  const [showUpdateModal, setShowUpdateModal] = useState(false)
+  const [selectedDeployment, setSelectedDeployment] = useState<{ name: string; namespace: string; image: string; replicas: number } | null>(null)
+  const [updateImage, setUpdateImage] = useState<string>('')
+  const [updateReplicas, setUpdateReplicas] = useState<number>(1)
 
   useEffect(() => {
     loadNamespaces()
@@ -186,6 +190,62 @@ function Pods() {
       await loadServices(namespace)
     } catch (err: any) {
       setError(err.message || 'Erro ao deletar service')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleOpenUpdateModal = (deployment: DeploymentInfo) => {
+    setSelectedDeployment({
+      name: deployment.nome,
+      namespace: deployment.namespace,
+      image: deployment.image,
+      replicas: deployment.replicas,
+    })
+    setUpdateImage(deployment.image)
+    setUpdateReplicas(deployment.replicas)
+    setShowUpdateModal(true)
+  }
+
+  const handleCloseUpdateModal = () => {
+    setShowUpdateModal(false)
+    setSelectedDeployment(null)
+    setUpdateImage('')
+    setUpdateReplicas(1)
+  }
+
+  const handleUpdateDeployment = async () => {
+    if (!selectedDeployment) return
+
+    if (!updateImage.trim() && (!updateReplicas || updateReplicas < 1)) {
+      setError('Preencha pelo menos a imagem ou o número de réplicas')
+      return
+    }
+
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const updateData: { namespace: string; name: string; image?: string; replicas?: number } = {
+        namespace: selectedDeployment.namespace,
+        name: selectedDeployment.name,
+      }
+
+      if (updateImage.trim()) {
+        updateData.image = updateImage.trim()
+      }
+
+      if (updateReplicas && updateReplicas > 0) {
+        updateData.replicas = updateReplicas
+      }
+
+      await k8sService.updateDeployment(updateData)
+      handleCloseUpdateModal()
+      // Recarrega a lista de deployments após atualizar
+      await loadDeployments(selectedDeployment.namespace)
+    } catch (err: any) {
+      setError(err.message || 'Erro ao atualizar deployment')
       console.error(err)
     } finally {
       setLoading(false)
@@ -564,13 +624,22 @@ function Pods() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleDeleteDeployment(deployment.nome, deployment.namespace)}
-                          disabled={loading}
-                          className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          Deletar
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleOpenUpdateModal(deployment)}
+                            disabled={loading}
+                            className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Atualizar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDeployment(deployment.nome, deployment.namespace)}
+                            disabled={loading}
+                            className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Deletar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -669,6 +738,72 @@ function Pods() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Atualização de Deployment */}
+        {showUpdateModal && selectedDeployment && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                Atualizar Deployment: {selectedDeployment.name}
+              </h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="update-image"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
+                    Imagem
+                  </label>
+                  <input
+                    id="update-image"
+                    type="text"
+                    value={updateImage}
+                    onChange={(e) => setUpdateImage(e.target.value)}
+                    placeholder="ex: nginx:latest"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="update-replicas"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
+                    Réplicas
+                  </label>
+                  <input
+                    id="update-replicas"
+                    type="number"
+                    min="1"
+                    value={updateReplicas}
+                    onChange={(e) => setUpdateReplicas(parseInt(e.target.value) || 1)}
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleUpdateDeployment}
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? 'Atualizando...' : 'Atualizar'}
+                </button>
+                <button
+                  onClick={handleCloseUpdateModal}
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-md hover:bg-slate-400 dark:hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         )}

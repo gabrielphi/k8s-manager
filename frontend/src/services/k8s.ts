@@ -78,6 +78,13 @@ export interface CreateResourceResponse {
   message: string
 }
 
+export interface UpdateDeploymentRequest {
+  namespace: string
+  name: string
+  image?: string
+  replicas?: number
+}
+
 export const k8sService = {
   async listPods(namespace: string): Promise<PodInfo[]> {
     try {
@@ -183,6 +190,17 @@ export const k8sService = {
     } catch (error: any) {
       console.error('Erro ao criar aplicação:', error)
       const errorMessage = error?.response?.data?.message || error?.message || 'Erro ao criar aplicação'
+      throw new Error(errorMessage)
+    }
+  },
+
+  async updateDeployment(data: UpdateDeploymentRequest): Promise<CreateResourceResponse> {
+    try {
+      const response = await api.post<CreateResourceResponse>('/updateDeployment', data)
+      return response.data
+    } catch (error: any) {
+      console.error('Erro ao atualizar deployment:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Erro ao atualizar deployment'
       throw new Error(errorMessage)
     }
   },

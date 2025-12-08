@@ -519,6 +519,71 @@ func createApplicationHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+type ResourceUpdateRequest struct {
+	Namespace string  `json:"namespace"`
+	Name      string  `json:"name"`
+	Image     *string `json:"image,omitempty"`
+	Replicas  *int32  `json:"replicas,omitempty"`
+}
+
+func updateDeploymentHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("updateDeploymentHandler chamado com método: %s", r.Method)
+
+	if r.Method != http.MethodPost {
+		log.Printf("Método não permitido: %s (esperado: POST)", r.Method)
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req ResourceUpdateRequest
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&req); err != nil {
+		if err == io.EOF {
+			http.Error(w, "Corpo da requisição não pode ser vazio", http.StatusBadRequest)
+			return
+		}
+		log.Printf("ERRO ao decodificar JSON: %v", err)
+		http.Error(w, "JSON mal formatado", http.StatusBadRequest)
+		return
+	}
+
+	if req.Namespace == "" || req.Name == "" {
+		http.Error(w, "Campos 'namespace' e 'name' são obrigatórios", http.StatusBadRequest)
+		return
+	}
+
+	if req.Replicas != nil && *req.Replicas < 1 {
+		http.Error(w, "Número de réplicas deve ser maior que 0", http.StatusBadRequest)
+		return
+	}
+
+	if req.Image != nil && *req.Image == "" {
+		http.Error(w, "Campo 'image' é obrigatório para deployment", http.StatusBadRequest)
+		return
+	}
+	if req.Image != nil {
+		err := k8s.UpdateDeploymentImage(req.Namespace, req.Name, *req.Image)
+		if err != nil {
+			log.Printf("ERRO ao atualizar imagem do deployment: %v", err)
+			http.Error(w, fmt.Sprintf("Erro ao atualizar imagem do deployment: %v", err), http.StatusInternalServerError)
+			return
+		}
+	}
+	if req.Replicas != nil {
+		err := k8s.ScaleDeployment(req.Namespace, req.Name, *req.Replicas)
+		if err != nil {
+			log.Printf("ERRO ao escalar deployment: %v", err)
+			http.Error(w, fmt.Sprintf("Erro ao escalar deployment: %v", err), http.StatusInternalServerError)
+			return
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	response := map[string]string{"status": "sucesso", "message": fmt.Sprintf("Deployment '%s' foi atualizado.", req.Name)}
+	json.NewEncoder(w).Encode(response)
+	log.Printf("Deployment foi atualizado com sucesso: %s", req.Name)
+}
+
 func Listen() {
 	// Aplica o middleware CORS ao handler
 	http.HandleFunc("GET /listAllPods/{namespace}", corsMiddleware(listPodsHandler))
@@ -531,6 +596,7 @@ func Listen() {
 	http.HandleFunc("POST /deleteDeployment", corsMiddleware(deleteDeploymentHandler))
 	http.HandleFunc("POST /deleteService", corsMiddleware(deleteServiceHandler))
 	http.HandleFunc("POST /deleteSecret", corsMiddleware(deleteSecretHandler))
+	http.HandleFunc("POST /updateDeployment", corsMiddleware(updateDeploymentHandler))
 	// Adiciona handler para requisições OPTIONS (preflight) para ambas as rotas
 	http.HandleFunc("OPTIONS /listAllPods/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /listAllDeployments/{namespace}", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
@@ -542,6 +608,7 @@ func Listen() {
 	http.HandleFunc("OPTIONS /deleteDeployment", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /deleteService", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	http.HandleFunc("OPTIONS /deleteSecret", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
+	http.HandleFunc("OPTIONS /updateDeployment", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 	log.Println("Servidor iniciado na porta 7000 com CORS habilitado")
 	log.Fatal(http.ListenAndServe(":7000", nil))
 }
