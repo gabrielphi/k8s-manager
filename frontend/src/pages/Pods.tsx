@@ -19,8 +19,8 @@ function Pods() {
   const [updateImage, setUpdateImage] = useState<string>('')
   const [updateReplicas, setUpdateReplicas] = useState<number>(1)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | null>(null)
   const [confirmMessage, setConfirmMessage] = useState<string>('')
+  const [pendingDelete, setPendingDelete] = useState<{ type: 'pod' | 'deployment' | 'service'; name: string; namespace: string } | null>(null)
 
   useEffect(() => {
     loadNamespaces()
@@ -145,64 +145,19 @@ function Pods() {
 
   const handleDeletePod = (name: string, namespace: string) => {
     setConfirmMessage(`Tem certeza que deseja deletar o pod "${name}" no namespace "${namespace}"?`)
-    setConfirmAction(async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        await k8sService.deletePod(name, namespace)
-        // Recarrega a lista de pods após deletar
-        await loadPods(namespace)
-      } catch (err: any) {
-        setError(err.message || 'Erro ao deletar pod')
-        console.error(err)
-      } finally {
-        setLoading(false)
-        setShowConfirmModal(false)
-        setConfirmAction(null)
-      }
-    })
+    setPendingDelete({ type: 'pod', name, namespace })
     setShowConfirmModal(true)
   }
 
   const handleDeleteDeployment = (name: string, namespace: string) => {
     setConfirmMessage(`Tem certeza que deseja deletar o deployment "${name}" no namespace "${namespace}"?`)
-    setConfirmAction(async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        await k8sService.deleteDeployment(name, namespace)
-        // Recarrega a lista de deployments após deletar
-        await loadDeployments(namespace)
-      } catch (err: any) {
-        setError(err.message || 'Erro ao deletar deployment')
-        console.error(err)
-      } finally {
-        setLoading(false)
-        setShowConfirmModal(false)
-        setConfirmAction(null)
-      }
-    })
+    setPendingDelete({ type: 'deployment', name, namespace })
     setShowConfirmModal(true)
   }
 
   const handleDeleteService = (name: string, namespace: string) => {
     setConfirmMessage(`Tem certeza que deseja deletar o service "${name}" no namespace "${namespace}"?`)
-    setConfirmAction(async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        await k8sService.deleteService(name, namespace)
-        // Recarrega a lista de services após deletar
-        await loadServices(namespace)
-      } catch (err: any) {
-        setError(err.message || 'Erro ao deletar service')
-        console.error(err)
-      } finally {
-        setLoading(false)
-        setShowConfirmModal(false)
-        setConfirmAction(null)
-      }
-    })
+    setPendingDelete({ type: 'service', name, namespace })
     setShowConfirmModal(true)
   }
 
@@ -265,8 +220,33 @@ function Pods() {
   const handleConfirm = async (e?: MouseEvent<HTMLButtonElement>) => {
     e?.preventDefault()
     e?.stopPropagation()
-    if (confirmAction) {
-      await confirmAction()
+    
+    if (!pendingDelete) return
+    
+    const { type, name, namespace } = pendingDelete
+    
+    try {
+      setLoading(true)
+      setError(null)
+      setShowConfirmModal(false)
+      
+      if (type === 'pod') {
+        await k8sService.deletePod(name, namespace)
+        await loadPods(namespace)
+      } else if (type === 'deployment') {
+        await k8sService.deleteDeployment(name, namespace)
+        await loadDeployments(namespace)
+      } else if (type === 'service') {
+        await k8sService.deleteService(name, namespace)
+        await loadServices(namespace)
+      }
+    } catch (err: any) {
+      setError(err.message || `Erro ao deletar ${type}`)
+      console.error(err)
+    } finally {
+      setLoading(false)
+      setPendingDelete(null)
+      setConfirmMessage('')
     }
   }
 
@@ -274,7 +254,7 @@ function Pods() {
     e?.preventDefault()
     e?.stopPropagation()
     setShowConfirmModal(false)
-    setConfirmAction(null)
+    setPendingDelete(null)
     setConfirmMessage('')
   }
 
