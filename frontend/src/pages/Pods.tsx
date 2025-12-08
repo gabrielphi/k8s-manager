@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import type { MouseEvent } from 'react'
 import { k8sService, PodInfo, DeploymentInfo, ServiceInfo } from '../services/k8s'
 
 type ViewType = 'pods' | 'deployments' | 'services'
@@ -142,7 +143,7 @@ function Pods() {
     }
   }
 
-  const handleDeletePod = async (name: string, namespace: string) => {
+  const handleDeletePod = (name: string, namespace: string) => {
     setConfirmMessage(`Tem certeza que deseja deletar o pod "${name}" no namespace "${namespace}"?`)
     setConfirmAction(async () => {
       try {
@@ -163,7 +164,7 @@ function Pods() {
     setShowConfirmModal(true)
   }
 
-  const handleDeleteDeployment = async (name: string, namespace: string) => {
+  const handleDeleteDeployment = (name: string, namespace: string) => {
     setConfirmMessage(`Tem certeza que deseja deletar o deployment "${name}" no namespace "${namespace}"?`)
     setConfirmAction(async () => {
       try {
@@ -184,7 +185,7 @@ function Pods() {
     setShowConfirmModal(true)
   }
 
-  const handleDeleteService = async (name: string, namespace: string) => {
+  const handleDeleteService = (name: string, namespace: string) => {
     setConfirmMessage(`Tem certeza que deseja deletar o service "${name}" no namespace "${namespace}"?`)
     setConfirmAction(async () => {
       try {
@@ -261,16 +262,26 @@ function Pods() {
     }
   }
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (e?: MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault()
+    e?.stopPropagation()
     if (confirmAction) {
       await confirmAction()
     }
   }
 
-  const handleCancelConfirm = () => {
+  const handleCancelConfirm = (e?: MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault()
+    e?.stopPropagation()
     setShowConfirmModal(false)
     setConfirmAction(null)
     setConfirmMessage('')
+  }
+
+  const handleModalOverlayClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      handleCancelConfirm()
+    }
   }
 
   // Filtra os pods baseado no termo de busca (nome ou imagem)
@@ -565,6 +576,7 @@ function Pods() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
+                          type="button"
                           onClick={() => handleDeletePod(pod.nome, pod.namespace)}
                           disabled={loading}
                           className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -647,6 +659,7 @@ function Pods() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex gap-2">
                           <button
+                            type="button"
                             onClick={() => handleOpenUpdateModal(deployment)}
                             disabled={loading}
                             className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -654,6 +667,7 @@ function Pods() {
                             Atualizar
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleDeleteDeployment(deployment.nome, deployment.namespace)}
                             disabled={loading}
                             className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -748,6 +762,7 @@ function Pods() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
+                          type="button"
                           onClick={() => handleDeleteService(service.nome, service.namespace)}
                           disabled={loading}
                           className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -765,8 +780,14 @@ function Pods() {
 
         {/* Modal de Confirmação */}
         {showConfirmModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            onClick={handleModalOverlayClick}
+          >
+            <div 
+              className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                   <svg
@@ -796,14 +817,16 @@ function Pods() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={handleConfirm}
+                  type="button"
+                  onClick={(e) => handleConfirm(e)}
                   disabled={loading}
                   className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? 'Processando...' : 'Confirmar'}
                 </button>
                 <button
-                  onClick={handleCancelConfirm}
+                  type="button"
+                  onClick={(e) => handleCancelConfirm(e)}
                   disabled={loading}
                   className="flex-1 px-4 py-2 bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-md hover:bg-slate-400 dark:hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
